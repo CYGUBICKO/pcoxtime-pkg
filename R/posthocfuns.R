@@ -418,7 +418,8 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #' 
 #' @param fit fitted \code{\link[pcoxtime]{pcoxtime}}.
 #' @param newdata optional data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.
-#' 
+#' @param stats logical. If \code{TRUE} all the related concordance statistics are returned.
+#'
 #' @return an object containing the concordance, followed by the number of pairs that agree, disagree, are tied, and are not comparable.
 #'
 #' @examples
@@ -448,22 +449,19 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #'
 #' @export
 
-concordScore.pcoxtime <- function(fit, newdata = NULL){
-	if (is.null(newdata)){
-		if (inherits(fit, "glmnetsurv")){
-			risk <- predict(fit$fit, newx = fit$X, s = fit$s)
-		} else {
-			risk <- predict(fit, type = "risk")
-		}
-		if (inherits(fit, "pcoxtime")){
-			Y <- fit$Y
-		} else {
-			Y <- fit$y
-		}
+concordScore.pcoxtime <- function(fit, newdata = NULL, stats = FALSE){
+	if (is.null(newdata)) {
+		risk <- predict(fit, type = "risk")
+		y <- model.extract(model.frame(fit), "response")
 	} else {
 		risk <- predict(fit, newdata = newdata, type = "risk")
-		Y <- model.extract(model.frame(fit$terms, data = newdata), "response")
+		y <- model.extract(model.frame(fit$terms, data = newdata), "response")
 	}
-	conindex <- survival::survConcordance(Y ~ risk)
+
+	conindex <- survival::survConcordance(y ~ risk)
+	if (!stats){
+		conindex <- conindex$concordance
+	}
 	return(conindex)
 }
+

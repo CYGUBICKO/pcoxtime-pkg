@@ -13,6 +13,9 @@ unscale(x, center, scale)
 
 \item{scale}{a vector of standard deviation of predictors.}
 }
+\value{
+A matrix (model.matrix) with the columns on the original scale.
+}
 \description{
 Unscale scaled predictors.
 }

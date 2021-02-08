@@ -5,12 +5,14 @@
 \alias{concordScore}
 \title{Compute the concordance statistic for the pcoxtime model}
 \usage{
-\method{concordScore}{pcoxtime}(fit, newdata = NULL)
+\method{concordScore}{pcoxtime}(fit, newdata = NULL, stats = FALSE)
 }
 \arguments{
 \item{fit}{fitted \code{\link[pcoxtime]{pcoxtime}}.}
 
 \item{newdata}{optional data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.}
+
+\item{stats}{logical. If \code{TRUE} all the related concordance statistics are returned.}
 }
 \value{
 an object containing the concordance, followed by the number of pairs that agree, disagree, are tied, and are not comparable.

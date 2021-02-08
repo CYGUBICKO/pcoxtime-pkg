@@ -6,6 +6,9 @@
 \usage{
 pcoxtheme()
 }
+\value{
+No return value, called for side effects (setting pcotime plotting theme).
+}
 \description{
 Sets a theme for pcoxtime and other ggplot objects
 }

@@ -16,6 +16,8 @@
 }
 \value{
 A vector of coefficient estimates.
+
+A vector of coefficient estimates.
 }
 \description{
 This function extracts the estimates for all the coefficients.

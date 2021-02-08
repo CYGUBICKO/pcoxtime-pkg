@@ -230,6 +230,41 @@ LogicalVector pcoxKKTcheck(const NumericVector& grad, const NumericVector& beta0
   return(index);
 }
 
+// Iterate over a vector of lambda
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X
+	, const arma::vec& beta0, const arma::vec& lambdas, const double alpha
+	, const int p, const int maxiter, const double tol
+	, const CharacterVector& xnames, bool lambmax = false){
+  
+	// Number of lambdas
+	int nlambda = lambdas.n_elem;
+  
+	// Intialize Beta-lambda matrix
+	NumericMatrix betaL(p, nlambda);
+	rownames(betaL) = xnames;
+
+	// Min Negative log-likelihoods
+	NumericVector min_nloglikL(nlambda);
+
+	// Cross-validation Min Negative log-likelihoods
+ 	NumericVector flogL(nlambda);
+	
+	for (int l; l < nlambda; l++) {
+		List out = proxiterate(Y, X, beta0, lambdas(l), alpha, p, maxiter, tol, xnames, lambmax = false);
+		betaL(_, l) = Rcpp::as<Rcpp::NumericVector>(wrap(out["beta_hat"]));
+		min_nloglikL[l] = as<double>(wrap(out["min.nloglik"]));
+		flogL[l] = as<double>(wrap(out["flog"]));
+	}
+
+	return Rcpp::List::create(Rcpp::Named("betaL", wrap(betaL))
+		, Rcpp::Named("min.nloglikL", wrap(min_nloglikL))
+		, Rcpp::Named("flogL", wrap(flogL))
+	);
+
+}
+
 //// Compute predicted relative hazard for every individual
 //// [[Rcpp::depends(RcppArmadillo)]]
 //// [[Rcpp::export]]
@@ -274,79 +309,3 @@ LogicalVector pcoxKKTcheck(const NumericVector& grad, const NumericVector& beta0
 //  return(Rcpp::as<Rcpp::NumericVector>(wrap(risk)));
 //}
 
-// // Cross-validation update
-// // [[Rcpp::depends(RcppArmadillo)]]
-// // [[Rcpp::export]]
-// Rcpp::List cviterate(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0
-//   , const int& p, const int& maxiter, const double& tol
-//   , const CharacterVector& xnames
-//   , const NumericVector& folds_indices
-//   , const int& nfolds = 10
-//   , const NumericVector& alphas = 1
-//   , const int& nlambdas = 100
-//   , const Rcpp::Nullable<Rcpp::NumericVector>& lambdas = R_NilValue){
-//   
-//   // Create grid for the parameters
-//   Function expandGrid("expand.grid");
-//   Function Rseq("seq");
-// 
-//   DataFrame tunegrid_df;
-//   List tunegrid_list;
-//   int n_alphas = alphas.length();
-//   arma::mat Y_sub;
-//   
-//   for (int i = 0; i < n_alphas; i++){
-//     DataFrame tuneGrid;
-//     IntegerVector folds = Rcpp::Range(0, nfolds-1);
-//     double alpha = alphas(i);
-//     NumericVector lambda_seq;
-//     double cve = 0.0, ncoefs = 0.0;
-//     if (lambdas == R_NilValue){
-//       double maxlambda;
-//       maxlambda = proxiterate(Y, X, beta0, 1.0, alpha, p, maxiter, tol, xnames, true)["max.grad"];
-//       lambda_seq = exp(Rseq(log(0.01*maxlambda), log(maxlambda), _["length.out"] = nlambdas));
-//     } else {
-//       lambda_seq = lambdas;
-//     }
-//     tuneGrid = expandGrid(Named("folds") = folds
-//       , Named("lambda") = lambda_seq
-//       , Named("alpha") = alpha
-//       , Named("cve") = cve
-//       , Named("ncoefs") = ncoefs
-//     );
-//     
-//     int N = tuneGrid.nrows();
-//     
-//     NumericVector fold_update = tuneGrid["folds"];
-//     NumericVector lambda_update = tuneGrid["lambda"];
-//     NumericVector alpha_update = tuneGrid["alpha"];
-//     NumericVector cve_update = tuneGrid["cve"];
-//     NumericVector ncoefs_update = tuneGrid["ncoefs"];
-//     
-//     for (int i = 0; i < N; i++){
-//       NumericVector index;
-//       double al = alpha_update[i];
-//       double lam = lambda_update[i];
-//       int f = fold_update[i];
-//       fold_update[i] = f;
-//       index = folds_indices[i == folds_indices];
-//       cve_update[i] = al * lam;
-//       arma::colvec index2 = index;
-//       Y_sub = Y.rows(index2);
-//     }
-//     tunegrid_df = DataFrame::create(Named("folds") = fold_update
-//     //  , Named("index") = index
-//       , Named("lambda") = lambda_update
-//       , Named("alpha") = alpha_update
-//       , Named("cve") = cve_update
-//       , Named("ncoefs") = ncoefs_update
-//     );
-//     
-//     std::string alpha_name = "alpha_" + std::to_string(alpha);
-//     //tunegrid_list[alpha_name] = index;
-//   }
-//   //IntegerVector t2 = folds_indices[t1==folds_indices];
-//   List out;
-//   //out["res"] = index;
-//   return(out);
-// }

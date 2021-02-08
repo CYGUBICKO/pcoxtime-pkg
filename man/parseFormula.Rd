@@ -13,6 +13,9 @@ the model.}
 \item{data}{optional data frame containing.
 variables specified in the formula.}
 }
+\value{
+A character string. The name of the response variable
+}
 \description{
 Parse formula and return response variable.
 }

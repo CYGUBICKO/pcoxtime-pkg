@@ -25,3 +25,7 @@ pcoxKKTcheck <- function(grad, beta0, lambda, alpha) {
     .Call(`_pcoxtime_pcoxKKTcheck`, grad, beta0, lambda, alpha)
 }
 
+lambdaiterate <- function(Y, X, beta0, lambdas, alpha, p, maxiter, tol, xnames, lambmax = FALSE) {
+    .Call(`_pcoxtime_lambdaiterate`, Y, X, beta0, lambdas, alpha, p, maxiter, tol, xnames, lambmax)
+}
+

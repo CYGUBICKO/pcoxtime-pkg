@@ -2,6 +2,8 @@
 #'
 #' @name pkgsExport
 #' @rdname pkgsExport
+#'
+#' @return No return value.
 NULL
 
 #'
@@ -58,3 +60,4 @@ NULL
 #' @rdname pkgsExport
 #' @keywords internal
 NULL
+

@@ -99,6 +99,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lambdaiterate
+Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0, const arma::vec& lambdas, const double alpha, const int p, const int maxiter, const double tol, const CharacterVector& xnames, bool lambmax);
+RcppExport SEXP _pcoxtime_lambdaiterate(SEXP YSEXP, SEXP XSEXP, SEXP beta0SEXP, SEXP lambdasSEXP, SEXP alphaSEXP, SEXP pSEXP, SEXP maxiterSEXP, SEXP tolSEXP, SEXP xnamesSEXP, SEXP lambmaxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type beta0(beta0SEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type lambdas(lambdasSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< const CharacterVector& >::type xnames(xnamesSEXP);
+    Rcpp::traits::input_parameter< bool >::type lambmax(lambmaxSEXP);
+    rcpp_result_gen = Rcpp::wrap(lambdaiterate(Y, X, beta0, lambdas, alpha, p, maxiter, tol, xnames, lambmax));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_pcoxtime_nloglik", (DL_FUNC) &_pcoxtime_nloglik, 5},
@@ -107,6 +127,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_pcoxtime_bbstep", (DL_FUNC) &_pcoxtime_bbstep, 4},
     {"_pcoxtime_proxiterate", (DL_FUNC) &_pcoxtime_proxiterate, 10},
     {"_pcoxtime_pcoxKKTcheck", (DL_FUNC) &_pcoxtime_pcoxKKTcheck, 4},
+    {"_pcoxtime_lambdaiterate", (DL_FUNC) &_pcoxtime_lambdaiterate, 10},
     {NULL, NULL, 0}
 };
 

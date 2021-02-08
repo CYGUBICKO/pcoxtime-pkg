@@ -58,7 +58,7 @@
 #'
 #' # Time-independent covariates
 #' data(veteran, package="survival")
-#' \dontrun{
+#' \donttest{
 #' cv1 <- pcoxtimecv(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
 #'		, alphas = 1
@@ -146,19 +146,20 @@ pcoxtimecv <- function(formula = formula(data), data = sys.parent()
 	# Perform CV
 	## Setup parallel because serial takes a lot of time. Otherwise you can turn it off
 	nn <- min(parallel::detectCores(), nclusters)
-	if (nn < 3){
+	if (nn < 2){
 		foreach::registerDoSEQ()
 	} else{
 		cl <-  parallel::makeCluster(nn)
 		doParallel::registerDoParallel(cl)
 		on.exit(parallel::stopCluster(cl))
 	}
-	
-	if (is.null(old_lambdas)){
-		## Generate a sequence of lambdas based on a given alpha
-		maxlambda_df <- lapply(alphas, function(al){
+
+	out2 <- list()
+	for (alpha in alphas) {
+		if (!quietly) {cat("Progress: cross-validating ====> alpha = ", alpha, "\n")}
+		if (is.null(old_lambdas)) {
 			lmax <- proxiterate(Y = Y, X = X, beta0 = beta0, lambda = 1
-				, alpha = al, p = p, maxiter = maxiter, tol = tol
+				, alpha = alpha, p = p, maxiter = maxiter, tol = tol
 				, xnames = xnames, lambmax = TRUE
 			)[["max.grad"]]
 			if (!is.null(lammin_fract)){
@@ -171,51 +172,55 @@ pcoxtimecv <- function(formula = formula(data), data = sys.parent()
 			lmin <- eps*lmax
 			lminus <- nlambdas - 1
 			lambdas <- lmax*((lmin/lmax)^((0:lminus)/lminus))
-			#lambdas <- exp(seq(log(lmax), log(lmin),  length.out = nlambdas))
-			ll_df <- expand.grid(folds = 1:nfolds, lambda = lambdas[1:floor(lamfract*nlambdas)]
-				, alpha = al, cvraw = 0, weights = 0
+			lambdas <- lambdas[1:floor(lamfract*nlambdas)]
+		}
+
+		f <- NULL
+		cvraw <- foreach (f = 1:nfolds, .combine = rbind
+			, .packages = "pcoxtime", .export = "onefold", .multicombine = TRUE) %dopar% {
+
+			index <- which(foldids==f)
+			Y_train <- Y[-index, , drop = FALSE]
+			X_train <- X[-index, , drop = FALSE]
+
+			if (devtype == "basic") {
+				Y_test <- Y[index, , drop = FALSE]
+				X_test <- X[index, , drop = FALSE]
+			} else {
+				Y_test <- Y
+				X_test <- X
+			}
+			cvraw <- onefold(Y_train = Y_train, X_train = X_train, Y_test = Y_test
+				, X_test = X_test, beta0 = beta0, alpha = alpha, lambdas = lambdas
+				, devtype = devtype, p = p, tol = tol, xnames = xnames, lambmax = FALSE
+				, maxiter = maxiter
 			)
-		})
-		tunegrid_df <- do.call("rbind", maxlambda_df)
-	} else {
-		tunegrid_df <- expand.grid(folds = 1:nfolds, lambda = lambdas[1:floor(lamfract*nlambdas)]
-			, alpha = alphas, cvraw = 0, weights = 0
+			cvraw
+		}
+		perfold <- nfolds - apply(is.na(cvraw),2,sum)
+		weights <- as.vector(tapply(events,foldids,sum))
+		cvraw <- cvraw/weights
+		cvm <- apply(cvraw,2,weighted.mean,w=weights,na.rm=TRUE)
+		cvsd <- sqrt(apply(scale(cvraw,cvm,FALSE)^2,2,weighted.mean,w=weights,na.rm=TRUE)/(perfold-1))
+		lamin <- getmin(lambdas,cvm,cvsd)
+		cvm_df <- data.frame(lambda = lambdas, alpha = alpha, cvm = cvm, cvsd = cvsd 
+			, cvlo = cvm - cvsd, cvup = cvm + cvsd
 		)
-	}
-	fold = NULL
-	out <- foreach (fold = seq(NROW(tunegrid_df)), .combine = "rbind"
-		, .packages = "pcoxtime", .export = "cvfitfun") %dopar% {
-		fitcv <- cvfitfun(fold = fold, Y = Y, X = X,  events = events, beta0 = beta0
-			, foldids = foldids, tunegrid_df = tunegrid_df, devtype = devtype, p = p
-			, maxiter = maxiter, tol = tol, xnames = xnames, lambmax = FALSE, scale_sd = scale_sd
+		min_metrics_df <- data.frame(lambda.min = lamin$lambda.min
+			, lambda.1se = lamin$lambda.1se, cv.min = lamin$cv.min
+			, alpha = alpha
 		)
-		beta_df <- data.frame(term = names(fitcv$beta_hat) 
-			, fold = rep(fitcv$fold, p), estimate = unname(fitcv$beta_hat) 
-			, alpha = rep(fitcv$alpha, p), lambda = rep(fitcv$lambda, p)
-			, l1_norm = rep(fitcv$l1_norm, p), nzero = rep(fitcv$ncoefs, p), kkt_pass = fitcv$kkt_pass
-		)
-		tune_df <- data.frame(folds = fitcv$fold, lambda = fitcv$lambda
-			, alpha = fitcv$alpha, cvraw = fitcv$cvraw, weights = fitcv$weights, kkt_pass = fitcv$kkt_pass
-		)
-		list(tune_df = tune_df, beta_df = beta_df)
+		nn <- paste0("alpha", alpha)
+		out2[[nn]] <- list(cvm_df = cvm_df, min_metrics_df = min_metrics_df)
 	}
 
-	tune_df <- do.call("rbind", out[,1])
-	rownames(tune_df) <- NULL
-	tune_df <- tune_df[!is.na(tune_df$cvraw)&!is.nan(tune_df$cvraw)&!is.infinite(tune_df$cvraw), ]
-	cvm_df <- extractcv(tune_df)
-	beta_df <- do.call("rbind", out[, 2])
-	rownames(beta_df) <- NULL
-
-	## Optimal parameter values
-	min_lambdas_df <- sapply(split(cvm_df, cvm_df$alpha), function(d){
-		min_df <- getmin(d$lambda, d$cvm, d$cvsd)
-		min_df$alpha <- unique(d$alpha)
-		return(unlist(min_df))
-	}, simplify = FALSE)
-	min_metrics_df <- data.frame(do.call("rbind", min_lambdas_df))
+	out2 <- do.call("rbind", out2)
+	cvm_df <- do.call("rbind", out2[, "cvm_df"])
+	rownames(cvm_df) <- NULL
+	min_metrics_df <- do.call("rbind", out2[, "min_metrics_df"])
 	rownames(min_metrics_df) <- NULL
 	
+	### Min metrics
 	min_lambdas <- min_metrics_df[which.min(min_metrics_df$cv.min), ]
 
 	### Min lambda: optimal lambda
@@ -230,144 +235,40 @@ pcoxtimecv <- function(formula = formula(data), data = sys.parent()
 	if (refit){
 		if (!quietly) {cat("Progress: Refitting with optimal lambdas...", "\n")}
 		
-		i <- NULL
-		beta_refit_df <- foreach (i = 1:length(lambdas.optimal), .combine = "rbind", .packages = "pcoxtime", .export = "proxiterate") %dopar% {
-			lam <- lambdas.optimal[[i]]
-			fitobj <- proxiterate(Y = Y
-				, X = X
-				, beta0 = beta0
-				, lambda = as.double(lam)
-				, alpha =	as.double(alpha.optimal)
-				, p = p
-				, maxiter = maxiter
-				, tol = tol
-				, xnames = xnames
-				, lambmax = FALSE
-			)
-			beta_hat <- fitobj$beta_hat/scale_sd
-			l1_norm <- sum(abs(beta_hat))
-			nzero <- length(beta_hat[beta_hat!=0])
-			beta_est <- data.frame(term = names(beta_hat) 
-				, estimate = unname(beta_hat) 
-				, alpha = rep(alpha.optimal, p), lambda = rep(lam, p)
-				, l1_norm = rep(l1_norm, p), nzero = rep(nzero, p)
-			)
-			beta_est
-		}
-	} else {
-		beta_refit_df <- NULL
-	}
-	
-	out <- list(lambda.min = lambda.min
-		, lambda.1se = lambda.1se
-		, alpha.optimal = alpha.optimal
-		, lambdas.optimal = lambdas.optimal, foldids = foldids
-		, dfs = list(min_metrics_df = min_metrics_df, cvm_df = cvm_df, beta = beta_df)
-		, fit = list(beta = beta_refit_df)
-	)
-	out$call <- match.call()
-	class(out) <- "pcoxtimecv"
-	return(out)
-}
-
-cvfitfun <- function(fold, Y, X, events, beta0
-	, foldids, tunegrid_df, devtype, p, tol
-	, xnames, lambmax, scale_sd, maxiter){
- 	
-	alp <- tunegrid_df[["alpha"]][fold]
-	lam <- tunegrid_df[["lambda"]][fold]
-	ff <- tunegrid_df[["folds"]][fold]
-	index <- which(foldids == ff)
-	Y_train <- Y[-index, , drop = FALSE]
-	X_train <- X[-index, , drop = FALSE]
-
-	if (devtype == "basic") {
-		Y_test <- Y[index, , drop = FALSE]
-		X_test <- X[index, , drop = FALSE]
-	} else {
-		Y_test <- Y
-		X_test <- X
-	}
-	tryCatch({	
-		fitobj <- proxiterate(Y = Y_train
-			, X = X_train
-			, beta0 = as.double(beta0)
-			, lambda = as.double(lam)
-			, alpha =	as.double(alp)
+		fitobj <- lambdaiterate(Y = Y
+			, X = X
+			, beta0 = beta0
+			, lambdas = lambdas.optimal
+			, alpha =	alpha.optimal
 			, p = p
 			, maxiter = maxiter
 			, tol = tol
 			, xnames = xnames
-			, lambmax = lambmax
+			, lambmax = FALSE
 		)
-		
-		beta_hat <- fitobj$beta_hat
-		plminusk <-  2*fitobj[["flog"]]
-		
-		plfull <- 2*nloglik(Y = Y_test, X = X_test
-			, beta0 = as.double(beta_hat)
-			, alpha = as.double(alp)
-			, lambda = as.double(lam)
-		)[["flog"]]
-		
-		if (devtype == "basic"){
-			cvraw <- plfull	
-		} else {
-			cvraw <- plfull - plminusk
-		}
-
-		## Check KKT conditions
-		kkt_violations <- pcoxKKTcheck(fitobj[["grad.opt"]]
-			, beta_hat
-			, lam
-			, alp
-		)
-		kkt_pass <- TRUE
-		if (any(kkt_violations)){
-			kkt_pass <- FALSE
-		}
-
-		## Nonzero coefficients
-		ncoefs <- length(beta_hat[beta_hat != 0])
-		
-		## Compute weights used in ll deviance. Borrowed from glmnet code
-		weights <- sum(events[index])
-
-		beta_hat <- beta_hat #/scale_sd
-		l1_norm <- sum(abs(beta_hat), na.rm = TRUE)
-		
-		out <- list(fold = ff, alpha = alp, lambda = lam, beta_hat = beta_hat
-			, cvraw = cvraw, ncoefs = ncoefs, weights = weights, l1_norm = l1_norm, kkt_pass = kkt_pass
-		)
-		return(out)
-	}, error = function(e){
-		cat("Possible non-convergence for lambda = ", lam, "in one of the folds. \nConsider increasing maxiter or reducing tol")
-	})
-}
-
-
-## Compute Partial likelihood-deviance for each alpha
-## Adopted from glmnet
-extractcv <- function(cvraw_df){
-	cv_df <- sapply(split(cvraw_df, cvraw_df$alpha), function(d1){
-		cv_df <- sapply(split(d1, d1$lambda), function(d){
-			lambda <- unique(d$lambda)
-			alpha <- unique(d$alpha)
-			nfolds <- length(unique(d$folds)) - (sum(is.na(d$cvraw)) + sum(is.nan(d$cvraw)))
-			cvm <- weighted.mean(d$cvraw/d$weights, w = d$weights)
-			cvsd <- sqrt(weighted.mean(scale(d$cvraw/d$weights, cvm, FALSE)^2
-				, w = d$weights, na.rm = TRUE)/(nfolds-1)
+		beta_hat <- fitobj$betaL/scale_sd
+		beta_est <- lapply(1:length(lambdas.optimal), function(x){
+			df <- data.frame(term=names(beta_hat[,x]), estimate = unname(beta_hat[,x])
+				, alpha = alpha.optimal, lambda = lambdas.optimal[x], l1_norm = sum(abs(beta_hat[,x]))
+				, nzero = sum(beta_hat[,x]!=0)
 			)
-			cve_df <- data.frame(lambda = lambda, alpha = alpha, cvm = cvm
-				, cvsd = cvsd ,cvlo = cvm - cvsd, cvup = cvm + cvsd
-			)
-			return(cve_df)
-		}, simplify = FALSE)
-		cv_df <- do.call("rbind", cv_df)
-	}, simplify = FALSE)
-	cv_df <- do.call("rbind", cv_df)
-	rownames(cv_df) <- NULL
-	return(cv_df)
+			return(df)
+		})
+		beta_refit_df <- do.call("rbind", beta_est)	
+	} else {
+		beta_refit_df <- NULL
+	}
+	
+	result <- list(lambda.min = lambda.min
+		, lambda.1se = lambda.1se
+		, alpha.optimal = alpha.optimal
+		, lambdas.optimal = lambdas.optimal, foldids = foldids
+		, dfs = list(min_metrics_df = min_metrics_df, cvm_df = cvm_df)
+		, fit = list(beta = beta_refit_df)
+	)
+	result$call <- match.call()
+	class(result) <- "pcoxtimecv"
+	return(result)
 }
 
 
@@ -382,3 +283,44 @@ getmin <- function(lambda, cvm, cvsd) {
 	lambda.1se <- max(lambda[idmin])
 	list(lambda.min = lambda.min, lambda.1se = lambda.1se, cv.min = cvmin)
 }
+
+## Iterate over folds 
+onefold <- function(Y_train, X_train, Y_test, X_test, beta0
+	, alpha, lambdas, devtype, p, tol, xnames, lambmax, maxiter){
+ 	
+	tryCatch({	
+		fitobj <- lambdaiterate(Y = Y_train
+			, X = X_train
+			, beta0 = as.double(beta0)
+			, lambdas = lambdas
+			, alpha =	as.double(alpha)
+			, p = p
+			, maxiter = maxiter
+			, tol = tol
+			, xnames = xnames
+			, lambmax = lambmax
+		)
+		
+		beta_hat <- fitobj$betaL
+		plminusk <-  2*fitobj[["flogL"]]
+		
+		plfull <- lapply(1:length(lambdas), function(l){
+			plfull <- 2*nloglik(Y = Y_test, X = X_test
+				, beta0 = as.vector(beta_hat[,l])
+				, alpha = alpha
+				, lambda = lambdas[l]
+			)[["flog"]]
+		})
+		plfull <- as.vector(unlist(plfull))
+
+		if (devtype == "basic"){
+			cvraw <- plfull	
+		} else {
+			cvraw <- plfull - plminusk
+		}
+		return(cvraw)
+	}, error = function(e){
+		cat("Possible non-convergence for some lambdas in one of the folds. \nConsider increasing maxiter or reducing tol")
+	})
+}
+

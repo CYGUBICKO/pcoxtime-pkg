@@ -45,7 +45,7 @@ print.pcoxsurvfit <- function(x, ...){
 		cat("Call:\n")
 		print(x$call)
 		out <- data.frame(cbind(n = x$n, events = sum(x$events)))
-		print(out, row.names = FALSE)
+		print(out, row.names = FALSE, ...)
 		cat("\n")
 	}
 }
@@ -60,6 +60,8 @@ print.pcoxsurvfit <- function(x, ...){
 #' @param x \code{\link[pcoxtime]{pcoxtimecv}} object
 #' @param ... for future implementations
 #'
+#' @return The call to the \code{\link[pcoxtime]{pcoxtimecv}} and the summary of the optimal alpha and lambdas.
+#'
 #' @method print pcoxtimecv
 #' @export
 #' @export print.pcoxtimecv
@@ -68,7 +70,7 @@ print.pcoxtimecv <- function(x, ...){
 	print(x$call)
 	cat("\nOptimal parameter values\n")
 	out <- data.frame(cbind(lambda.min = x$lambda.min, lambda.1se = x$lambda.1se, alpha.optimal = x$alpha.optimal))
-	print(out, row.names = FALSE)
+	print(out, row.names = FALSE, ...)
 	cat("\n")
 }
 
@@ -92,6 +94,8 @@ coef.pcoxtime <- function(object, ...){
 
 #' Extract coefficient estimates of pcoxtime object
 #' 
+#' @return A vector of coefficient estimates.
+#'
 #' @method coefficients pcoxtime
 #' @rdname coef.pcoxtime
 #' @export 
@@ -107,4 +111,4 @@ pcoxsurvfit <- function(fit, newdata, ...) UseMethod("pcoxsurvfit")
 pcoxbasehaz <- function(fit, centered = TRUE) UseMethod("pcoxbasehaz")
 
 #' @export
-concordScore <- function(fit, newdata) UseMethod("concordScore")
+concordScore <- function(fit, newdata = NULL, stats = FALSE) UseMethod("concordScore")

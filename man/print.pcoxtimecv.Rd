@@ -11,6 +11,9 @@
 
 \item{...}{for future implementations}
 }
+\value{
+The call to the \code{\link[pcoxtime]{pcoxtimecv}} and the summary of the optimal alpha and lambdas.
+}
 \description{
 Print the summary of the result of cross-validation for a pcoxtime object.
 }

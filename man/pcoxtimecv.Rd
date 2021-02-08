@@ -94,7 +94,7 @@ For data sets with a very large number of predictors, it is recommended to only 
 
 # Time-independent covariates
 data(veteran, package="survival")
-\dontrun{
+\donttest{
 cv1 <- pcoxtimecv(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran
 	, alphas = 1

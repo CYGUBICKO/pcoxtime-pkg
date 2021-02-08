@@ -2,6 +2,8 @@
 #' 
 #' Sets a theme for pcoxtime and other ggplot objects
 #'
+#' @return No return value, called for side effects (setting pcotime plotting theme).
+#'
 #' @examples
 #' library(ggplot2)
 #' pcoxtheme()

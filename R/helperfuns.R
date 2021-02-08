@@ -117,6 +117,8 @@ riskset <- function(formula = formula(data), data = sys.parent(), contrasts.arg 
 #'
 #' @param model formula.
 #'
+#' @return A character string. The name of the response variable
+#'
 #' @keywords internal
 
 getResponse <- function(formula) {
@@ -133,6 +135,8 @@ getResponse <- function(formula) {
 #' @param data optional data frame containing.
 #' variables specified in the formula.
 #'
+#' @return A character string. The name of the response variable
+#'
 #' @keywords internal
 
 parseFormula <- function(formula, data, env = parent.frame()) {
@@ -147,6 +151,8 @@ parseFormula <- function(formula, data, env = parent.frame()) {
 #' @param x a model matrix or data frame with numeric variables.
 #' @param center a vector of means of predictors.
 #' @param scale a vector of standard deviation of predictors.
+#'
+#' @return A matrix (model.matrix) with the columns on the original scale.
 #'
 #' @keywords internal
 

@@ -9,6 +9,9 @@
 \alias{Score}
 \alias{permalgorithm}
 \title{Import and export various functions from various packages}
+\value{
+No return value.
+}
 \description{
 Import and export various functions from various packages
 

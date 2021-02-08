@@ -207,6 +207,7 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 		if (is.null(beta_df)){
 			facet <- TRUE
 			beta_df = x$dfs$beta
+			if (is.null(beta_df))stop("Run pcoxtimecv with refit = TRUE to plot coefficients!!!")
 			rand_fold <- sample(unique(beta_df$fold), 1)
 			beta_df <- beta_df[beta_df$fold==rand_fold, ]
 		}
@@ -339,7 +340,7 @@ plot.Score <- function(x, ..., type = c("roc", "auc", "brier"), pos = 0.3){
 			+ geom_point(position = position_dodge(pos))
 			+ geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(pos))
 			+ scale_colour_viridis_d(option = "inferno")
-			+ labs(x = "AUC", y = "Model", colour = "Time")
+			+ labs(y = "AUC", x = "Model", colour = "Time")
 			+ theme(legend.position = "right")
 		)
 	} else {
@@ -348,7 +349,7 @@ plot.Score <- function(x, ..., type = c("roc", "auc", "brier"), pos = 0.3){
 			+ geom_point(position = position_dodge(pos))
 			+ geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(pos))
 			+ scale_colour_viridis_d(option = "inferno")
-			+ labs(x = "Brier", y = "Model", colour = "Time")
+			+ labs(y = "Brier", x = "Model", colour = "Time")
 			+ theme(legend.position = "right")
 		)
 	}

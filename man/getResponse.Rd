@@ -9,6 +9,9 @@ getResponse(formula)
 \arguments{
 \item{model}{formula.}
 }
+\value{
+A character string. The name of the response variable
+}
 \description{
 Extract response from the formula
 }
