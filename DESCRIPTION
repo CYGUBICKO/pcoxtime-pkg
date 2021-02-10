@@ -7,7 +7,7 @@ Authors@R: c(person("Bicko","Cygu", role=c("aut","cre"),
             comment=c(ORCID = "0000-0002-9284-8863")),
 	    person("Ben","Bolker",role="aut",
 	           comment=c(ORCID="0000-0002-2127-0443")))
-Description: Fits penalized models for both time-independent and time-dependent survival data. It fully implements elastic net and uses proximal gradient descent to solve the optimization problem.
+Description: Fits penalized models for both time-independent and time-dependent survival data. It fully implements elastic net and uses proximal gradient descent to solve the optimization problem. The package is an implementation of Steve Cygu and Benjamin M. Bolker. (2021) <arXiv:2102.02297>.
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 1.0.5), survival, doParallel, parallel, foreach, ggplot2, prodlim, riskRegression, PermAlgo
@@ -18,4 +18,3 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://github.com/CYGUBICKO/pcoxtime-pkg
-Steve Cygu, Benjamin M. Bolker. (2021) <arXiv:2102.02297>
