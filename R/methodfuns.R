@@ -111,4 +111,4 @@ pcoxsurvfit <- function(fit, newdata, ...) UseMethod("pcoxsurvfit")
 pcoxbasehaz <- function(fit, centered = TRUE) UseMethod("pcoxbasehaz")
 
 #' @export
-concordScore <- function(fit, newdata = NULL, stats = FALSE) UseMethod("concordScore")
+concordScore <- function(fit, newdata = NULL, stats = FALSE, reverse = TRUE, ...) UseMethod("concordScore")

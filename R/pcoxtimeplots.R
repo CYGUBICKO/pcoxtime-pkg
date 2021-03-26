@@ -269,7 +269,11 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 #'
 #' @examples
 #'
-#' data(veteran, package="survival")
+#' if (packageVersion("survival")>="3.2.9") {
+#'    data(cancer, package="survival")
+#' } else {
+#'    data(veteran, package="survival")
+#' }
 #' # pcoxtime
 #' lam <- 0.1
 #' alp <- 1
@@ -325,33 +329,46 @@ plot.Score <- function(x, ..., type = c("roc", "auc", "brier"), pos = 0.3){
 	type <- match.arg(type)
 	if (type == "roc"){
 		df <- x$ROC$plotframe
+		df$times <- as.factor(df$times)
 		FPR <- TPR <- model <- AUC <- lower <- upper <- Brier <- NULL
-		p1 <- (ggplot(df, aes(x = FPR, y = TPR, color = as.factor(times)))
+		model_cols <- unique(df$model)
+		p1 <- (ggplot(df, aes(x = FPR, y = TPR, color = model))
 			+ geom_line(size = 1)
 			+ geom_abline(size = 1, colour = "grey")
-			+ facet_wrap(~model)
+			+ facet_wrap(~times)
 			+ labs(x = "1-Specificity", y = "Sensitivity", colour = "Time")
-			+ scale_colour_viridis_d(option = "inferno")
+			+ scale_color_manual(breaks = model_cols
+				, values = rainbow(n = length(model_cols))
+			)
 			+ theme(legend.position = "right")
-		)	
+		)
 	} else if (type == "auc"){
 		df <- x$AUC$score
-		p1 <- (ggplot(df, aes(x = model, y = AUC, colour = as.factor(times)))
+		model_cols <- unique(df$model)
+		df$times <- as.factor(df$times)
+		p1 <- (ggplot(df, aes(x = times, y = AUC, group = model, colour = model))
 			+ geom_point(position = position_dodge(pos))
-			+ geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(pos))
-			+ scale_colour_viridis_d(option = "inferno")
-			+ labs(y = "AUC", x = "Model", colour = "Time")
+			+ geom_pointrange(aes(ymin = lower, ymax = upper, colour = model), position = position_dodge(pos))
+			+ scale_color_manual(breaks = model_cols
+				, values = rainbow(n = length(model_cols))
+			)
+			+ labs(x = "Time", y = "AUC", colour = "Model")
 			+ theme(legend.position = "right")
 		)
 	} else {
 		df <- x$Brier$score
-		p1 <- (ggplot(df, aes(x = model, y = Brier, colour = as.factor(times)))
+		df$times <- as.factor(df$times)
+		model_cols <- unique(df$model)
+		p1 <- (ggplot(df, aes(x = times, y = Brier, group = model, colour = model))
 			+ geom_point(position = position_dodge(pos))
-			+ geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(pos))
-			+ scale_colour_viridis_d(option = "inferno")
-			+ labs(y = "Brier", x = "Model", colour = "Time")
+			+ geom_pointrange(aes(ymin = lower, ymax = upper, colour = model), position = position_dodge(pos))
+			+ scale_color_manual(breaks = model_cols
+				, values = rainbow(n = length(model_cols))
+			)
+			+ labs(x = "Time", y = "Brier", colour = "Model")
 			+ theme(legend.position = "right")
 		)
 	}
 	return(p1)
 }
+

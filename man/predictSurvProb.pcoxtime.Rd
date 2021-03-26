@@ -5,7 +5,7 @@
 \alias{predictSurvProb}
 \title{Predict survival probabilities at various time points}
 \usage{
-predictSurvProb.pcoxtime(object, newdata, times, ...)
+\method{predictSurvProb}{pcoxtime}(object, newdata, times, ...)
 }
 \arguments{
 \item{object}{fitted \code{\link[pcoxtime]{pcoxtime}}.}
@@ -24,7 +24,11 @@ The function extracts the survival probability predictions from a \code{pcoxtime
 }
 \examples{
 
-data(veteran, package="survival")
+if (packageVersion("survival")>="3.2.9") {
+   data(cancer, package="survival")
+} else {
+   data(veteran, package="survival")
+}
 # Penalized
 lam <- 0.1
 alp <- 0.5
@@ -33,7 +37,7 @@ pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + pr
 	, lambda = lam 
 	, alpha = alp
 )
-p1 <- predictSurvProb.pcoxtime(pfit1, newdata = veteran[1:80,], times = 10)
+p1 <- predictSurvProb(pfit1, newdata = veteran[1:80,], times = 10)
 
 # Unpenalized
 lam <- 0
@@ -43,7 +47,7 @@ pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + pr
 	, lambda = lam 
 	, alpha = alp
 )
-p2 <- predictSurvProb.pcoxtime(pfit2, newdata = veteran[1:80,], times = 10)
+p2 <- predictSurvProb(pfit2, newdata = veteran[1:80,], times = 10)
 plot(p1, p2, xlim=c(0,1), ylim=c(0,1)
 	, xlab = "Penalized predicted survival chance at 10"
 	, ylab="Unpenalized predicted survival chance at 10"

@@ -95,11 +95,16 @@
 #' @export
 #' @import Rcpp
 #' @importFrom stats .getXlevels aggregate approx as.formula coef coefficients delete.response model.extract model.frame model.matrix na.omit na.pass predict setNames terms weighted.mean
+#' @importFrom grDevices rainbow
 #'
 #' @examples
 #'
 #' # Time-independent covariates
-#' data(veteran, package="survival")
+#' if (packageVersion("survival")>="3.2.9") {
+#' 	data(cancer, package="survival")
+#' } else {
+#' 	data(veteran, package="survival")
+#' }
 #' ## Fit unpenalized Cox using pcoxtime
 #' lam <- 0 # Should fit unpenalized Cox model
 #' pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior

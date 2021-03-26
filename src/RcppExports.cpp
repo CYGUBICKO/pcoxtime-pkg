@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // nloglik
-Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0, const double& lambda, const double& alpha);
+Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0, const double lambda, const double alpha);
 RcppExport SEXP _pcoxtime_nloglik(SEXP YSEXP, SEXP XSEXP, SEXP beta0SEXP, SEXP lambdaSEXP, SEXP alphaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -15,8 +15,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type beta0(beta0SEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const double& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     rcpp_result_gen = Rcpp::wrap(nloglik(Y, X, beta0, lambda, alpha));
     return rcpp_result_gen;
 END_RCPP

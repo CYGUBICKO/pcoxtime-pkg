@@ -1,12 +1,13 @@
-#include <RcppArmadillo.h>
+# include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
 using namespace Rcpp;
 using namespace arma;
 
 // Compute negative log-likelihood of time-dependant covariates
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0
-  , const double& lambda, const double& alpha) {
+  , const double lambda, const double alpha) {
   
   // Number of observations
   int N = X.n_rows;
@@ -50,9 +51,9 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
     for (int i = 0; i < N; i++){
       cond = (endtime(i)) >= (endtime);
       P = Rcpp::as<Rcpp::NumericVector>(wrap(relhaz(i)/risk)) * cond;
-      res_est[i] = events(i) - as_scalar(P * events);
+      res_est[i] = events(i) - as<double>(wrap(P * events));
       if (events[i] == 1){
-        ll += log(as_scalar(P(i)));
+        ll += log(as<double>(wrap(P(i))));
       }
     }
   } else {
@@ -71,7 +72,7 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
       P = Rcpp::as<Rcpp::NumericVector>(wrap(relhaz(i)/risk)) * cond;
       res_est[i] = events(i) - as<double>(wrap(P * events));
       if (events[i] == 1){
-        ll += log(as_scalar(P(i)));
+        ll += log(as<double>(wrap(P(i))));
       }
     }
   }
@@ -88,7 +89,6 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
 
 
 // Compute the gradient 
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 Rcpp::NumericVector gradient(const arma::mat& X, const arma::vec& beta0,  const arma::vec& res_est, const double lambda, const double alpha){
   // Number of observations
@@ -99,7 +99,6 @@ Rcpp::NumericVector gradient(const arma::mat& X, const arma::vec& beta0,  const 
 }
 
 //  Defines operator for proximal gradient descent update
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 Rcpp::NumericVector proxupdate(const arma::vec& beta0, const  arma::vec& grad, const double gamma, const double lambda, const double alpha){
   arma::vec z = beta0 - gamma * grad;
@@ -111,7 +110,6 @@ Rcpp::NumericVector proxupdate(const arma::vec& beta0, const  arma::vec& grad, c
 
 
 // Barzilia-Borwien step size adjustment
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 double bbstep(const NumericVector& beta, const NumericVector& beta_prev, const NumericVector& grad, const NumericVector& grad_prev){
   NumericVector sk = beta - beta_prev;
@@ -122,7 +120,6 @@ double bbstep(const NumericVector& beta, const NumericVector& beta_prev, const N
 
 
 // Proximal iteration updates
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
   , const arma::vec& beta0, const double lambda, const double alpha
@@ -231,7 +228,6 @@ LogicalVector pcoxKKTcheck(const NumericVector& grad, const NumericVector& beta0
 }
 
 // Iterate over a vector of lambda
-// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X
 	, const arma::vec& beta0, const arma::vec& lambdas, const double alpha
@@ -251,7 +247,7 @@ Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X
 	// Cross-validation Min Negative log-likelihoods
  	NumericVector flogL(nlambda);
 	
-	for (int l; l < nlambda; l++) {
+	for (int l = 0; l < nlambda; l++) {
 		List out = proxiterate(Y, X, beta0, lambdas(l), alpha, p, maxiter, tol, xnames, lambmax = false);
 		betaL(_, l) = Rcpp::as<Rcpp::NumericVector>(wrap(out["beta_hat"]));
 		min_nloglikL[l] = as<double>(wrap(out["min.nloglik"]));
@@ -266,7 +262,6 @@ Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X
 }
 
 //// Compute predicted relative hazard for every individual
-//// [[Rcpp::depends(RcppArmadillo)]]
 //// [[Rcpp::export]]
 //NumericVector predictedHazard(const arma::mat& Y, const arma::mat& X, const arma::vec& beta_hat) {
 //  

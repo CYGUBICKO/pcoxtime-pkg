@@ -27,7 +27,11 @@ For survival outcome, the function predicts the risk, \eqn{1 - S(t|x)}, where \e
 }
 \examples{
 
-data(veteran, package="survival")
+if (packageVersion("survival")>="3.2.9") {
+   data(cancer, package="survival")
+} else {
+   data(veteran, package="survival")
+}
 # Penalized
 lam <- 0.1
 alp <- 0.5

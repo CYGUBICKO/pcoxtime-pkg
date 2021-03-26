@@ -5,7 +5,7 @@
 \alias{concordScore}
 \title{Compute the concordance statistic for the pcoxtime model}
 \usage{
-\method{concordScore}{pcoxtime}(fit, newdata = NULL, stats = FALSE)
+\method{concordScore}{pcoxtime}(fit, newdata = NULL, stats = FALSE, reverse = TRUE, ...)
 }
 \arguments{
 \item{fit}{fitted \code{\link[pcoxtime]{pcoxtime}}.}
@@ -13,6 +13,10 @@
 \item{newdata}{optional data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.}
 
 \item{stats}{logical. If \code{TRUE} all the related concordance statistics are returned.}
+
+\item{reverse}{if TRUE (default) then assume that larger x values predict smaller response values y; a proportional hazards model is the common example of this.}
+
+\item{...}{additional arguments passed to \code{\link[survival]{concordance}}.}
 }
 \value{
 an object containing the concordance, followed by the number of pairs that agree, disagree, are tied, and are not comparable.
@@ -21,11 +25,15 @@ an object containing the concordance, followed by the number of pairs that agree
 The function computes the agreement between the observed response and the predictor.
 }
 \details{
-Computes Harrell's C index for predictions for \code{\link[pcoxtime]{pcoxtime}} object and takes into account censoring. See \code{\link[survival]{survConcordance}}.
+Computes Harrell's C index for predictions for \code{\link[pcoxtime]{pcoxtime}} object and takes into account censoring. See \code{\link[survival]{concordance}}.
 }
 \examples{
 
-data(veteran, package="survival")
+if (packageVersion("survival")>="3.2.9") {
+   data(cancer, package="survival")
+} else {
+   data(veteran, package="survival")
+}
 # Penalized
 lam <- 0.1
 alp <- 0.5

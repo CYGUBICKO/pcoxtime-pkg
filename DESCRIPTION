@@ -1,7 +1,7 @@
 Package: pcoxtime
 Type: Package
 Title: Penalized Cox Proportional Hazard Model for Time-Dependent Covariates
-Version: 1.0
+Version: 1.0.1
 Authors@R: c(person("Bicko","Cygu", role=c("aut","cre"),
 				email="cygubicko@gmail.com",
             comment=c(ORCID = "0000-0002-9284-8863")),
@@ -10,7 +10,7 @@ Authors@R: c(person("Bicko","Cygu", role=c("aut","cre"),
 Description: Fits penalized models for both time-independent and time-dependent survival data. It fully implements elastic net and uses proximal gradient descent to solve the optimization problem. The package is an implementation of Steve Cygu and Benjamin M. Bolker. (2021) <arXiv:2102.02297>.
 License: GPL (>= 2)
 Depends: R (>= 3.5.0)
-Imports: Rcpp (>= 1.0.5), survival, doParallel, parallel, foreach, ggplot2, prodlim, riskRegression, PermAlgo
+Imports: Rcpp (>= 1.0.5), survival, doParallel, parallel, foreach, ggplot2, prodlim, riskRegression, PermAlgo, pec
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.1
 Encoding: UTF-8

@@ -4,7 +4,7 @@
 \alias{pkgsExport}
 \alias{Surv}
 \alias{coxph}
-\alias{survConcordance}
+\alias{concordance}
 \alias{sindex}
 \alias{Score}
 \alias{permalgorithm}
@@ -19,7 +19,7 @@ Import and export Surv. See \code{\link[survival]{Surv}}
 
 Import and export coxph. See \code{\link[survival]{coxph}}
 
-Import and export survConcordance. See \code{\link[survival]{survConcordance}}
+Import and export concordance. See \code{\link[survival]{concordance}}
 
 Import and export sindex. See \code{\link[prodlim]{sindex}}
 

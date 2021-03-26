@@ -318,7 +318,11 @@ predictedHazard <- function(fit){
 #'
 #' @examples
 #'
-#' data(veteran, package="survival")
+#' if (packageVersion("survival")>="3.2.9") {
+#'    data(cancer, package="survival")
+#' } else {
+#'    data(veteran, package="survival")
+#' }
 #' # Penalized
 #' lam <- 0.1
 #' alp <- 0.5
@@ -327,7 +331,7 @@ predictedHazard <- function(fit){
 #'		, lambda = lam 
 #'		, alpha = alp
 #'	)
-#' p1 <- predictSurvProb.pcoxtime(pfit1, newdata = veteran[1:80,], times = 10)
+#' p1 <- predictSurvProb(pfit1, newdata = veteran[1:80,], times = 10)
 #'
 #' # Unpenalized
 #' lam <- 0
@@ -337,18 +341,20 @@ predictedHazard <- function(fit){
 #'		, lambda = lam 
 #'		, alpha = alp
 #'	)
-#' p2 <- predictSurvProb.pcoxtime(pfit2, newdata = veteran[1:80,], times = 10)
+#' p2 <- predictSurvProb(pfit2, newdata = veteran[1:80,], times = 10)
 #' plot(p1, p2, xlim=c(0,1), ylim=c(0,1)
 #' 	, xlab = "Penalized predicted survival chance at 10"
 #' 	, ylab="Unpenalized predicted survival chance at 10"
 #' )
 #'
 #' @importFrom prodlim sindex
-#' @export
+#' @importFrom pec predictSurvProb
+#' @export predictSurvProb
+#' @export 
 
 predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 	N <- NROW(newdata)
-	sfit <- pcoxsurvfit.pcoxtime(object, newdata = newdata)
+	sfit <- pcoxsurvfit(object, newdata = newdata)
 	S <- t(sfit$surv)
 	Time <- sfit$time
 	if(N == 1) S <- matrix(S, nrow = 1)
@@ -374,7 +380,11 @@ predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 #'
 #' @examples
 #'
-#' data(veteran, package="survival")
+#' if (packageVersion("survival")>="3.2.9") {
+#'    data(cancer, package="survival")
+#' } else {
+#'    data(veteran, package="survival")
+#' }
 #' # Penalized
 #' lam <- 0.1
 #' alp <- 0.5
@@ -414,17 +424,23 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #' @aliases concordScore
 #'
 #' @details 
-#' Computes Harrell's C index for predictions for \code{\link[pcoxtime]{pcoxtime}} object and takes into account censoring. See \code{\link[survival]{survConcordance}}.
+#' Computes Harrell's C index for predictions for \code{\link[pcoxtime]{pcoxtime}} object and takes into account censoring. See \code{\link[survival]{concordance}}.
 #' 
 #' @param fit fitted \code{\link[pcoxtime]{pcoxtime}}.
 #' @param newdata optional data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.
 #' @param stats logical. If \code{TRUE} all the related concordance statistics are returned.
+#' @param reverse if TRUE (default) then assume that larger x values predict smaller response values y; a proportional hazards model is the common example of this.
+#' @param ... additional arguments passed to \code{\link[survival]{concordance}}.
 #'
 #' @return an object containing the concordance, followed by the number of pairs that agree, disagree, are tied, and are not comparable.
 #'
 #' @examples
 #'
-#' data(veteran, package="survival")
+#' if (packageVersion("survival")>="3.2.9") {
+#'    data(cancer, package="survival")
+#' } else {
+#'    data(veteran, package="survival")
+#' }
 #' # Penalized
 #' lam <- 0.1
 #' alp <- 0.5
@@ -449,7 +465,7 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #'
 #' @export
 
-concordScore.pcoxtime <- function(fit, newdata = NULL, stats = FALSE){
+concordScore.pcoxtime <- function(fit, newdata = NULL, stats = FALSE, reverse = TRUE, ...){
 	if (is.null(newdata)) {
 		risk <- predict(fit, type = "risk")
 		y <- model.extract(model.frame(fit), "response")
@@ -458,7 +474,7 @@ concordScore.pcoxtime <- function(fit, newdata = NULL, stats = FALSE){
 		y <- model.extract(model.frame(fit$terms, data = newdata), "response")
 	}
 
-	conindex <- survival::survConcordance(y ~ risk)
+	conindex <- survival::concordance(y ~ risk, reverse = reverse, ...)
 	if (!stats){
 		conindex <- conindex$concordance
 	}

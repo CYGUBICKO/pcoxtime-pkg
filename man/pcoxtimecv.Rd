@@ -15,7 +15,7 @@ pcoxtimecv(
   nfolds = 10,
   foldids = NULL,
   devtype = "vv",
-  refit = TRUE,
+  refit = FALSE,
   maxiter = 1e+05,
   tol = 1e-08,
   quietly = FALSE,
@@ -93,7 +93,11 @@ For data sets with a very large number of predictors, it is recommended to only 
 \examples{
 
 # Time-independent covariates
-data(veteran, package="survival")
+if (packageVersion("survival")>="3.2.9") {
+   data(cancer, package="survival")
+} else {
+   data(veteran, package="survival")
+}
 \donttest{
 cv1 <- pcoxtimecv(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran

@@ -25,11 +25,11 @@ NULL
 #' @keywords internal
 NULL
 
-#' Import and export survConcordance. See \code{\link[survival]{survConcordance}} 
+#' Import and export concordance. See \code{\link[survival]{concordance}} 
 #'
-#' @importFrom survival survConcordance
-#' @export survConcordance
-#' @name survConcordance
+#' @importFrom survival concordance
+#' @export concordance
+#' @name concordance
 #' @rdname pkgsExport
 #' @keywords internal
 NULL

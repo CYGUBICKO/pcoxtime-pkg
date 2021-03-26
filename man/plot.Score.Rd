@@ -26,7 +26,11 @@ Implements plot method for \code{\link[riskRegression]{Score}} for time-dependen
 }
 \examples{
 
-data(veteran, package="survival")
+if (packageVersion("survival")>="3.2.9") {
+   data(cancer, package="survival")
+} else {
+   data(veteran, package="survival")
+}
 # pcoxtime
 lam <- 0.1
 alp <- 1
