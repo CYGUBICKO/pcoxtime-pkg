@@ -14,7 +14,9 @@
   geom = c("point", "line"),
   g.size = 0.2,
   g.col = "red",
-  bar.col = g.col
+  bar.col = g.col,
+  scales = "free_x",
+  show_min_cve = TRUE
 )
 }
 \arguments{
@@ -37,6 +39,10 @@
 \item{g.col}{colour specification for points/lines}
 
 \item{bar.col}{colour specification for error bars}
+
+\item{scales}{should scales be "fixed", "free", "free_x" or "free_y"?}
+
+\item{show_min_cve}{whether or not to show the alpha which gives minimum cross-validation error. Ignored if a single \code{alpha} is specified. This replaced "Optimal" in the version \code{1.01.1} and below.}
 }
 \value{
 a \code{\link[ggplot2]{ggplot}} object.

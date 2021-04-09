@@ -155,8 +155,8 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
     return Rcpp::List::create(Named("max.grad", gtol));
   }
 
-  // Initialization
-  beta(_, 0) = proxupdate(beta0, grad_init, 0.01*gtol, lambda, alpha);
+  // Initialization (0.01)
+  beta(_, 0) = proxupdate(beta0, grad_init, 0.001*gtol, lambda, alpha);
   List nll1 = nloglik(Y, X, beta(_, 0), lambda, alpha);
   grads(_, 0) = gradient(X, beta(_, 0), nll1["res.est"], lambda, alpha);
   gamma(0) = bbstep(beta(_, 0), Rcpp::as<Rcpp::NumericVector>(wrap(beta0)), grads(_,0), grad_init);

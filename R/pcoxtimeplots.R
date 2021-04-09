@@ -107,6 +107,8 @@ plot.pcoxsurvfit <- function(x, ..., type = c("surv", "cumhaz"), lsize = 0.3,
 #' @param g.col colour specification for points/lines
 #' @param g.size size specification for points/lines
 #' @param bar.col colour specification for error bars
+#' @param scales should scales be "fixed", "free", "free_x" or "free_y"?
+#' @param show_min_cve whether or not to show the alpha which gives minimum cross-validation error. Ignored if a single \code{alpha} is specified. This replaced "Optimal" in the version \code{1.01.1} and below.
 #'
 #' @return a \code{\link[ggplot2]{ggplot}} object.
 #'
@@ -133,11 +135,9 @@ plot.pcoxsurvfit <- function(x, ..., type = c("surv", "cumhaz"), lsize = 0.3,
 #' @import ggplot2
 #' @export
 
-plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "l1"), show_nzero = FALSE, seed = 1234, geom=c("point","line"),
-                            g.size = 0.2,
-                            g.col = "red", bar.col = g.col) {
-        geom <- match.arg(geom)
-        gm <- getExportedValue("ggplot2", paste0("geom_",geom))
+plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "l1"), show_nzero = FALSE, seed = 1234, geom=c("point","line"), g.size = 0.2, g.col = "red", bar.col = g.col, scales = "free_x", show_min_cve = TRUE) {
+   geom <- match.arg(geom)
+   gm <- getExportedValue("ggplot2", paste0("geom_",geom))
 	mcall <- match.call()
 	type <- match.arg(type)
 	set.seed(seed)
@@ -163,8 +163,9 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 	if (type == "cve") {
 		cvm_df <- x$dfs$cvm_df
 		min_df <- x$dfs$min_metrics_df
-		cvm_df$optimal <- ifelse(cvm_df$alpha==x$alpha.optimal, "  (Optimal)", "")
-		min_df$optimal <- ifelse(min_df$alpha==x$alpha.optimal, "  (Optimal)", "")
+		if (length(unique(min_df$alpha))==1) show_min_cve <- FALSE
+		cvm_df$optimal <- ifelse(cvm_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
+		min_df$optimal <- ifelse(min_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
 		cvm_df$alpha <- as.factor(cvm_df$alpha)
 		cvm_df$alpha_labels <- paste0("alpha== ", cvm_df$alpha, cvm_df$optimal)
 		min_df$alpha_labels <- paste0("alpha== ", min_df$alpha, min_df$optimal)
@@ -175,7 +176,7 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 				, colour = bar.col
 				, alpha = 0.4
 			)
-			+ facet_wrap(~alpha_labels, labeller = label_parsed, scales = "free_x")
+			+ facet_wrap(~alpha_labels, labeller = label_parsed, scales = scales)
 			+ geom_vline(data = min_df, aes(xintercept = log(lambda.min)), lty = 2, size = 0.2)
 			+ geom_vline(data = min_df, aes(xintercept = log(lambda.1se)), lty = 2, size = 0.2)
 			+ labs(x = expression(log(lambda)), y = "Partial Likelihood Deviance")
@@ -187,7 +188,7 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 			labels_df <- lapply(split(lamb_tmp_df, lamb_tmp_df$alpha), function(dd){
 				df <- sec_axisLabs("lambda")
 				df$alpha <- unique(dd$alpha)
-				df$optimal <- ifelse(df$alpha==x$alpha.optimal, "  (Optimal)", "")
+				df$optimal <- ifelse(df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
 				df$alpha_labels <- paste0("alpha== ", df$alpha,	df$optimal)
 				return(df)
 			})
@@ -245,7 +246,7 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 			)
 		}
 		if (facet) {
-			coef_plot <- coef_plot + facet_wrap(~alpha, scales = "free_x")
+			coef_plot <- coef_plot + facet_wrap(~alpha, scales = scales)
 			message("These are CV coefficient plots. \nSet refit = TRUE to plot estimates based on whole dataset")
 		}
                 attr(coef_plot, "call") <- mcall            
