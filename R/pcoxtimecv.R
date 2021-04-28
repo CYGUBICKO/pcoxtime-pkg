@@ -329,14 +329,14 @@ onefold <- function(Y_train, X_train, Y_test, X_test, beta0
 		)
 		
 		beta_hat <- fitobj$betaL
-		plminusk <-  2*fitobj[["flogL"]]
+		plminusk <-  2*fitobj[["min.nloglikL"]]
 		
 		plfull <- lapply(1:length(lambdas), function(l){
 			plfull <- 2*nloglik(Y = Y_test, X = X_test
 				, beta0 = as.vector(beta_hat[,l])
 				, alpha = alpha
 				, lambda = lambdas[l]
-			)[["flog"]]
+			)[["nll.est"]]
 		})
 		plfull <- as.vector(unlist(plfull))
 
@@ -350,6 +350,4 @@ onefold <- function(Y_train, X_train, Y_test, X_test, beta0
 		cat("Possible non-convergence for some lambdas in one of the folds. \nConsider increasing maxiter or reducing tol")
 	})
 }
-
-
 

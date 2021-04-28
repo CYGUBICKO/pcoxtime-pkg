@@ -79,7 +79,7 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
 
   // Penalized negative log-likelihood
   nll = -ll + lambda*(alpha*sum(abs(beta0)) + 0.5*(1-alpha)*sum(square(beta0)));
-  flog = -ll + lambda*(sum(abs(beta0)));
+  flog = -ll; 
   return Rcpp::List::create(Rcpp::Named("res.est", wrap(res_est))
     , Rcpp::Named("nll.est", wrap(nll))
     , Rcpp::Named("n.risk", wrap(n_risk))
@@ -178,16 +178,16 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
       beta(_, k+1) = proxupdate(beta(_, k), grads(_, k+1), gamma2, lambda, alpha);
       
       // Check for convergence
-      // devcheck = sqrt(sum(pow(beta(_,k+1) - beta(_, k), 2)))/gamma2;
-		devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma2;
+      devcheck = sqrt(sum(pow(beta(_,k+1) - beta(_, k), 2)))/gamma2;
+		// devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma2;
     } else {
       beta(_, k+1) = proxupdate(beta(_, k), grads(_, k), gamma(k), lambda, alpha);
       nll = nloglik(Y, X, beta(_, k+1), lambda, alpha);
       grads(_, k+1) = gradient(X, beta(_, k+1), nll["res.est"], lambda, alpha);
       gamma(k+1) = bbstep(beta(_, k+1), Rcpp::as<Rcpp::NumericVector>(wrap(beta(_, k))), grads(_,k+1), grads(_,k));
       // Check for convergence
-		// devcheck = sqrt(sum(pow((beta(_,k+1) - beta(_, k)), 2)))/gamma(k);
-		devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma(k);
+		devcheck = sqrt(sum(pow((beta(_,k+1) - beta(_, k)), 2)))/gamma(k);
+		// devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma(k);
     }
     deviances(k) = devcheck;
     nlls(k+1) = nll["nll.est"];
