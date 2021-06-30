@@ -20,6 +20,6 @@ A two column output, the first column is the coefficient estimate and the second
 This function prints a summary of the pcoxtime object.
 }
 \details{
-The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values. 
+The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values.
 Depending on the number of coefficients, \code{nprint} can be used to specify the number of coefficients to print out.
 }

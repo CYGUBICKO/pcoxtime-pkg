@@ -49,11 +49,11 @@
 #' # Baseline survival estimate
 #' bsurv <- pcoxbasehaz(pfit, centered = FALSE)
 #'
-#' @export 
+#' @export
 #'
 
 pcoxsurvfit.pcoxtime <- function(fit, newdata, ...){
-	
+
 	if (!inherits(fit, "pcoxtime"))
 		stop("Primary argument must be a pcoxtime object")
 	afit <- predictedHazard(fit)
@@ -64,7 +64,7 @@ pcoxsurvfit.pcoxtime <- function(fit, newdata, ...){
 		surv.est <- t(sapply(surv.est, function(x) x^exp(lp)))
 		chaz <- -log(surv.est)
 	}
-	
+
 	out <- list(n = afit$n
 		, events = sum(afit$n.event)
 		, time = afit$time
@@ -90,15 +90,16 @@ pcoxsurvfit.pcoxtime <- function(fit, newdata, ...){
 #'
 
 pcoxbasehaz.pcoxtime <- function(fit, centered = TRUE){
+    ## FIXME: shouldn't be necessary?
 	if (!inherits(fit, "pcoxtime"))
 		stop("Primary argument must be a pcoxtime object")
 
 	sfit <- pcoxsurvfit.pcoxtime(fit)
-	
+
 	## Expected cummulative hazard rate sum of hazard s.t y(t)<=t
 	chaz <- sfit$cumhaz
 	surv.est <- exp(-chaz)
-	
+
 	## Compute the cumhaz with the mean of the covariates otherwise set
 	## all covariates to 0 (above)
 	if (!centered) {
@@ -110,7 +111,7 @@ pcoxbasehaz.pcoxtime <- function(fit, centered = TRUE){
 		surv.est <- exp(-chaz)
 	}
 	out <- list(time = sfit$time, hazard = chaz, surv = surv.est)
-	class(out) <- c("pcoxsurvfit", "pcoxbasehaz")
+	class(out) <- c("pcoxsurvfit", "pcoxbasehaz")  ## FIXME: change order
 	out
 }
 
@@ -119,7 +120,7 @@ pcoxbasehaz.pcoxtime <- function(fit, centered = TRUE){
 #' Compute fitted values and model terms for the pcoxtime model.
 #'
 #' @details
-#' The computation of these predictions similar to those in \code{\link[survival]{predict.coxph}}. Our current implementation does not incorporate stratification. 
+#' The computation of these predictions similar to those in \code{\link[survival]{predict.coxph}}. Our current implementation does not incorporate stratification.
 #'
 #' @param object fitted \code{\link[pcoxtime]{pcoxtime}} object
 #' @param ... for future implementations.
@@ -150,7 +151,7 @@ pcoxbasehaz.pcoxtime <- function(fit, centered = TRUE){
 #' @export
 
 predict.pcoxtime <- function(object, ..., newdata = NULL, type = c("lp", "risk", "expected", "terms", "survival"), terms = object$predictors, na.action = na.pass){
-	
+
 	if (!inherits(object, "pcoxtime"))
 		stop("Primary argument must be a pcoxtime object")
 	if (!missing(terms)){
@@ -170,7 +171,7 @@ predict.pcoxtime <- function(object, ..., newdata = NULL, type = c("lp", "risk",
 	timevar <- object$timevarlabel
 	eventvar <- object$eventvarlabel
 	all_terms <- object$predictors
-	
+
 	if (!is.null(newdata)) {
 		if(type == "expected"){
 			new_form <- object$terms
@@ -219,7 +220,7 @@ predict.pcoxtime <- function(object, ..., newdata = NULL, type = c("lp", "risk",
 		colnames(terms_df) <- all_terms
 		if(!missing(terms)){	terms_df <- terms_df[, terms, drop = FALSE]}
 	}
-	
+
 	## Borrowed from survival::predict
 	if (type == "expected"){
 		afit <- predictedHazard(object)
@@ -234,7 +235,7 @@ predict.pcoxtime <- function(object, ..., newdata = NULL, type = c("lp", "risk",
 		j2 <- approx(times, 1:afit.n, newY[,2], method = "constant", f = 0, yleft = 0, yright = afit.n)$y
 			chaz2 <- c(0, afit$chaz)[j2 + 1]
 			expected <- unname((chaz2 - chaz) * newrisk)
-		}		
+		}
 		if (survival){
 			survival <- exp(-expected)
 			type <- "survival"
@@ -251,12 +252,12 @@ predict.pcoxtime <- function(object, ..., newdata = NULL, type = c("lp", "risk",
 	return(out)
 }
 
-#' Compute predicted hazard 
-#' 
-#' This code is borrowed from internal function agsurv from survival package. 
+#' Compute predicted hazard
+#'
+#' This code is borrowed from internal function agsurv from survival package.
 #'
 #' @param fit fitted \code{\link[pcoxtime]{pcoxtime}}
-#' @return A list of S3 objects. 
+#' @return A list of S3 objects.
 #' \item{n}{number of observations used in the fit.}
 #' \item{events}{total number of events of interest in the fit.}
 #' \item{time}{time points defined by the risk set.}
@@ -314,7 +315,7 @@ predictedHazard <- function(fit){
 #' @param times a vector of times in the range of the response, at which to return the survival probabilities.
 #' @param ... for future implementations.
 #'
-#' @return a matrix of probabilities with as many rows as the rows of the \code{newdata} and as many columns as number of time points (\code{times}). 
+#' @return a matrix of probabilities with as many rows as the rows of the \code{newdata} and as many columns as number of time points (\code{times}).
 #'
 #' @examples
 #'
@@ -328,7 +329,7 @@ predictedHazard <- function(fit){
 #' alp <- 0.5
 #' pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' p1 <- predictSurvProb(pfit1, newdata = veteran[1:80,], times = 10)
@@ -338,7 +339,7 @@ predictedHazard <- function(fit){
 #' alp <- 1
 #' pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' p2 <- predictSurvProb(pfit2, newdata = veteran[1:80,], times = 10)
@@ -350,7 +351,7 @@ predictedHazard <- function(fit){
 #' @importFrom prodlim sindex
 #' @importFrom pec predictSurvProb
 #' @export predictSurvProb
-#' @export 
+#' @export
 
 predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 	N <- NROW(newdata)
@@ -368,7 +369,7 @@ predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 #'
 #' @aliases predictRisk
 #'
-#' @details 
+#' @details
 #' For survival outcome, the function predicts the risk, \eqn{1 - S(t|x)}, where \eqn{S(t|x)} is the survival chance of an individual characterized by \eqn{x}.
 #'
 #' @param object fitted \code{\link[pcoxtime]{pcoxtime}}.
@@ -376,7 +377,7 @@ predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 #' @param times a vector of times in the range of the response, at which to return the survival probabilities.
 #' @param ... for future implementations.
 #'
-#' @return a matrix of probabilities with as many rows as the rows of the \code{newdata} and as many columns as number of time points (\code{times}). 
+#' @return a matrix of probabilities with as many rows as the rows of the \code{newdata} and as many columns as number of time points (\code{times}).
 #'
 #' @examples
 #'
@@ -390,7 +391,7 @@ predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 #' alp <- 0.5
 #' pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' r1 <- predictRisk(pfit1, newdata = veteran[1:80,], times = 10)
@@ -400,7 +401,7 @@ predictSurvProb.pcoxtime <- function(object, newdata, times, ...){
 #' alp <- 1
 #' pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' r2 <- predictRisk(pfit2, newdata = veteran[1:80,], times = 10)
@@ -423,9 +424,9 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #'
 #' @aliases concordScore
 #'
-#' @details 
+#' @details
 #' Computes Harrell's C index for predictions for \code{\link[pcoxtime]{pcoxtime}} object and takes into account censoring. See \code{\link[survival]{concordance}}.
-#' 
+#'
 #' @param fit fitted \code{\link[pcoxtime]{pcoxtime}}.
 #' @param newdata optional data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.
 #' @param stats logical. If \code{TRUE} all the related concordance statistics are returned.
@@ -446,7 +447,7 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #' alp <- 0.5
 #' pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' c1 <- concordScore(pfit1)
@@ -457,7 +458,7 @@ predictRisk.pcoxtime <- function(object, newdata, times, ...){
 #' alp <- 1
 #' pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 #'		, data = veteran
-#'		, lambda = lam 
+#'		, lambda = lam
 #'		, alpha = alp
 #'	)
 #' c2 <- concordScore(pfit2)

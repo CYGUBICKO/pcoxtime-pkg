@@ -2,10 +2,10 @@
 #'
 #' This function prints a summary of the pcoxtime object.
 #'
-#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values. 
+#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values.
 #' Depending on the number of coefficients, \code{nprint} can be used to specify the number of coefficients to print out.
 #'
-#' @param x fitted \code{\link[pcoxtime]{pcoxtime}} model object 
+#' @param x fitted \code{\link[pcoxtime]{pcoxtime}} model object
 #' @param ... for future implementations
 #' @param nprint number of coefficients to print out
 #'
@@ -13,7 +13,6 @@
 #'
 #' @method print pcoxtime
 #' @export
-#' @export print.pcoxtime
 print.pcoxtime <- function(x, ..., nprint = 10){
 	cat("Call:\n")
 	print(x$call)
@@ -39,7 +38,6 @@ print.pcoxtime <- function(x, ..., nprint = 10){
 #'
 #' @method print pcoxsurvfit
 #' @export
-#' @export print.pcoxsurvfit
 print.pcoxsurvfit <- function(x, ...){
 	if (!inherits(x, "pcoxbasehaz")){
 		cat("Call:\n")
@@ -54,7 +52,7 @@ print.pcoxsurvfit <- function(x, ...){
 #'
 #' Print the summary of the result of cross-validation for a pcoxtime object.
 #'
-#' @details 
+#' @details
 #' A summary of optimal lambda and alpha for training pcoxtime model.
 #'
 #' @param x \code{\link[pcoxtime]{pcoxtimecv}} object
@@ -64,7 +62,6 @@ print.pcoxsurvfit <- function(x, ...){
 #'
 #' @method print pcoxtimecv
 #' @export
-#' @export print.pcoxtimecv
 print.pcoxtimecv <- function(x, ...){
 	cat("Call:\n")
 	print(x$call)
@@ -75,31 +72,29 @@ print.pcoxtimecv <- function(x, ...){
 }
 
 #' Extract coefficient estimates of pcoxtime object
-#' 
+#'
 #' This function extracts the estimates for all the coefficients.
 #'
-#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates. 
+#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates.
 #'
-#' @param object fitted \code{\link[pcoxtime]{pcoxtime}} model object 
+#' @param object fitted \code{\link[pcoxtime]{pcoxtime}} model object
 #' @param ... for future implementations
 #'
 #' @return A vector of coefficient estimates.
 #'
 #' @method coef pcoxtime
 #' @export
-#' @export coef.pcoxtime
 coef.pcoxtime <- function(object, ...){
 	return(drop(object$coef))
 }
 
 #' Extract coefficient estimates of pcoxtime object
-#' 
+#'
 #' @return A vector of coefficient estimates.
 #'
 #' @method coefficients pcoxtime
 #' @rdname coef.pcoxtime
-#' @export 
-#' @export coefficients.pcoxtime
+#' @export
 coefficients.pcoxtime <- function(object, ...){
 	return(drop(object$coef))
 }
