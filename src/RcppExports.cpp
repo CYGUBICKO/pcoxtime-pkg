@@ -52,15 +52,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // bbstep
-double bbstep(const NumericVector& beta, const NumericVector& beta_prev, const NumericVector& grad, const NumericVector& grad_prev);
+double bbstep(const Rcpp::NumericVector& beta, const Rcpp::NumericVector& beta_prev, const Rcpp::NumericVector& grad, const Rcpp::NumericVector& grad_prev);
 RcppExport SEXP _pcoxtime_bbstep(SEXP betaSEXP, SEXP beta_prevSEXP, SEXP gradSEXP, SEXP grad_prevSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type beta_prev(beta_prevSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type grad(gradSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type grad_prev(grad_prevSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type beta_prev(beta_prevSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type grad(gradSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type grad_prev(grad_prevSEXP);
     rcpp_result_gen = Rcpp::wrap(bbstep(beta, beta_prev, grad, grad_prev));
     return rcpp_result_gen;
 END_RCPP
@@ -86,13 +86,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // pcoxKKTcheck
-LogicalVector pcoxKKTcheck(const NumericVector& grad, const NumericVector& beta0, const double lambda, const double alpha);
+LogicalVector pcoxKKTcheck(const Rcpp::NumericVector& grad, const Rcpp::NumericVector& beta0, const double lambda, const double alpha);
 RcppExport SEXP _pcoxtime_pcoxKKTcheck(SEXP gradSEXP, SEXP beta0SEXP, SEXP lambdaSEXP, SEXP alphaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type grad(gradSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type beta0(beta0SEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type grad(gradSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type beta0(beta0SEXP);
     Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     rcpp_result_gen = Rcpp::wrap(pcoxKKTcheck(grad, beta0, lambda, alpha));

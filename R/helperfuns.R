@@ -55,12 +55,16 @@
 #' 
 #' @keywords internal
 
-riskset <- function(formula = formula(data), data = sys.parent(), contrasts.arg = NULL, xlevs = NULL, scaleX = TRUE, na.action = na.omit){
+riskset <- function(formula, data, contrasts.arg = NULL, xlevs = NULL, scaleX = TRUE, na.action = na.omit){
 	
 	call <- match.call()
 	m <- match.call(expand.dots = FALSE)
 	temp <- c("", "formula", "data")
 	m <- m[match(temp, names(m), nomatch = 0)]
+	if (missing(data)) {
+		data <- sys.parent()
+	}
+	if (missing(formula)) stop("a formula argument is required")
 	Terms <- terms(formula, data = data)
 	m$formula <- Terms
 	m$na.action <- na.action

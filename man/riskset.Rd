@@ -5,8 +5,8 @@
 \title{Compute the risk set indicator}
 \usage{
 riskset(
-  formula = formula(data),
-  data = sys.parent(),
+  formula,
+  data,
   contrasts.arg = NULL,
   xlevs = NULL,
   scaleX = TRUE,

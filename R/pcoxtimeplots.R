@@ -77,9 +77,9 @@ plot.pcoxsurvfit <- function(x, ..., type = c("surv", "cumhaz"), lsize = 0.3,
 	)
 
 	if (type == "surv"){
-		p1 <- p0 + geom_step(aes(y = surv), size = lsize, colour=lcol) + labs(y = "Survival prob.")
+		p1 <- p0 + geom_step(aes(y = surv), size = lsize, colour=lcol) + labs(y = "Survival probability")
 		if (compare){
-			p1 <- p0 + geom_step(aes(y = surv, col = "pcoxtime"), size = lsize) + labs(y = "Survival prob.")
+			p1 <- p0 + geom_step(aes(y = surv, col = "pcoxtime"), size = lsize) + labs(y = "Survival probability")
 		}
 	} else {
 		p1 <- p0 + geom_step(aes(y = cumhaz), size = lsize) + labs(y = "Cumulative hazard")
@@ -164,8 +164,8 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 		cvm_df <- x$dfs$cvm_df
 		min_df <- x$dfs$min_metrics_df
 		if (length(unique(min_df$alpha))==1) show_min_cve <- FALSE
-		cvm_df$optimal <- ifelse(cvm_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
-		min_df$optimal <- ifelse(min_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
+		cvm_df$optimal <- ifelse(cvm_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CV-PLD)", "")
+		min_df$optimal <- ifelse(min_df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CV-PLD)", "")
 		cvm_df$alpha <- as.factor(cvm_df$alpha)
 		cvm_df$alpha_labels <- paste0("alpha== ", cvm_df$alpha, cvm_df$optimal)
 		min_df$alpha_labels <- paste0("alpha== ", min_df$alpha, min_df$optimal)
@@ -188,7 +188,7 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 			labels_df <- lapply(split(lamb_tmp_df, lamb_tmp_df$alpha), function(dd){
 				df <- sec_axisLabs("lambda")
 				df$alpha <- unique(dd$alpha)
-				df$optimal <- ifelse(df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CVE)", "")
+				df$optimal <- ifelse(df$alpha==x$alpha.optimal & show_min_cve, "  (Min.~CV-PLD)", "")
 				df$alpha_labels <- paste0("alpha== ", df$alpha,	df$optimal)
 				return(df)
 			})

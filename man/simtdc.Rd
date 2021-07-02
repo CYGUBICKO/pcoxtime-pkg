@@ -14,7 +14,7 @@ simtdc(
   betas = NULL,
   tdcmat = NULL,
   xmat = NULL,
-  rho = 1,
+  rho = 0,
   eventRandom = NULL,
   rate = 0.012,
   censorRandom = NULL,
@@ -49,7 +49,7 @@ genX(
 
 \item{xmat}{specify an entire matrix for all the covariates. If specified (a matrix with nSubjects*maxTime rows), all the previous specifications for number of covariates and \code{tdcmat} are ignored. This is important in mechanistic simulation of all the covariates or some specific distributional assumptions are required.}
 
-\item{rho}{specify the pairwise correlation between the time-independent covariates. The default \code{rho = 1} means no pairwise correlation between the covariates.}
+\item{rho}{specify the pairwise correlation between the time-independent covariates. The default \code{rho = 0} means no pairwise correlation between the covariates.}
 
 \item{eventRandom}{a non-negative integers of length \code{nSubjects} which represent the subject's event times or a random generating function with \code{n} option specified. If \code{NULL}, the algorithm generates \code{nSubjects} random deviates from exponential distribution with \code{rate = rate}. See \code{rate} option.}
 
@@ -81,7 +81,7 @@ a list of dataset, betas (and matrix of covariates). The covariates have a suffi
 This function uses the permutation algorithm to generate a dataset based on user specified list of covariates, of which some can be time-dependent. User can also specify distribution of event and censoring times.
 }
 \details{
-This function is a wrapper to the permutation algorithm implemented in \code{\link[PermAlgo]{permalgorithm}}. The user can fix the pairwise correlation between any 2 predictors (only time-dependent covariates) by specify \code{-1 <= rho < 1}.
+This function is a wrapper to the permutation algorithm implemented in \code{\link[PermAlgo]{permalgorithm}}. The user can fix the positive pairwise correlation between each pair of time-independent covariates by specify \code{0 < rho <= 1}.
 }
 \examples{
 

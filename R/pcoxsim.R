@@ -3,7 +3,7 @@
 #' This function uses the permutation algorithm to generate a dataset based on user specified list of covariates, of which some can be time-dependent. User can also specify distribution of event and censoring times.
 #'
 #' @details 
-#' This function is a wrapper to the permutation algorithm implemented in \code{\link[PermAlgo]{permalgorithm}}. The user can fix the pairwise correlation between any 2 predictors (only time-dependent covariates) by specify \code{-1 <= rho < 1}.
+#' This function is a wrapper to the permutation algorithm implemented in \code{\link[PermAlgo]{permalgorithm}}. The user can fix the positive pairwise correlation between each pair of time-independent covariates by specify \code{0 < rho <= 1}.
 #'
 #' @param nSubjects number of subjects to simulate, default is \code{100}.
 #' @param maxTime a non-zero integer specifying the maximum length of follow-up time, default is \code{365}.
@@ -13,7 +13,7 @@
 #' @param betas a vector of 'true' effect sizes (regression coefficients) representing the magnitude of the relationship between the respective covariate and the risk of event. If \code{NULL}, the algorithm generates \code{betas} from a uniform distribution and then converts them to log hazard, i.e., \code{log(runif((pfixed+ptdc+pbin), 0, 2))}. The length of \code{betas} must be the same the total of covariates to generate.
 #' @param tdcmat specify own time-dependent covariates. If specified (a matrix with nSubjects*maxTime rows), \code{ptdc} is ignored. This is important in mechanistic simulation of the time-dependent covariates.
 #' @param xmat specify an entire matrix for all the covariates. If specified (a matrix with nSubjects*maxTime rows), all the previous specifications for number of covariates and \code{tdcmat} are ignored. This is important in mechanistic simulation of all the covariates or some specific distributional assumptions are required.
-#' @param rho specify the pairwise correlation between the time-independent covariates. The default \code{rho = 1} means no pairwise correlation between the covariates.
+#' @param rho specify the pairwise correlation between the time-independent covariates. The default \code{rho = 0} means no pairwise correlation between the covariates.
 #' @param eventRandom a non-negative integers of length \code{nSubjects} which represent the subject's event times or a random generating function with \code{n} option specified. If \code{NULL}, the algorithm generates \code{nSubjects} random deviates from exponential distribution with \code{rate = rate}. See \code{rate} option.
 #' @param rate the rate for the exponential random deviates for \code{eventRandom}.
 #' @param censorRandom a non-negative integers of length \code{nSubjects} which represent the subject's censoring times or a random generating function with \code{n} option specified. If \code{NULL}, the algorithm generates \code{nSubjects} random numbers based on uniform distribution, i.e., \code{runif(nSubjects, 1, maxTime)}.
@@ -85,7 +85,7 @@
 
 simtdc <- function(nSubjects = 100, maxTime = 365, pfixed = 2
 	, ptdc = 2, pbin = NULL, betas = NULL, tdcmat = NULL
-	, xmat = NULL, rho = 1, eventRandom = NULL, rate = 0.012 
+	, xmat = NULL, rho = 0, eventRandom = NULL, rate = 0.012 
 	, censorRandom = NULL, groupByD = FALSE, x = FALSE) {
 	if (is.null(xmat)){
 		xmat <- genX(nSubjects = nSubjects, maxTime = maxTime
@@ -118,15 +118,15 @@ simtdc <- function(nSubjects = 100, maxTime = 365, pfixed = 2
 
 genX <- function(nSubjects = 100, maxTime = 365, pfixed = 2, ptdc = 2
 	, pbin = NULL, tdcmat = NULL, rho = 1){
-	if(rho < -1 | rho > 1) stop("choose rho between -1 and 1")
+	if(rho < 0 | rho > 1) stop("choose rho between 0 and 1")
 	if (any(c(pfixed, ptdc, pbin) < 1)) stop("Number of covariates should be at least 1.")
-	xfixed <- replicate(pfixed, rep(rnorm(nSubjects), each = maxTime))
+	z <- rep(rnorm(nSubjects), each = maxTime)
 	if(abs(rho)<1){
+		xfixed <- replicate(pfixed, rep(rnorm(nSubjects), each = maxTime))
 		b <- sqrt(rho/(1-rho))
-		z <- rep(rnorm(nSubjects), each = maxTime)
 		x0 <- b*matrix(z,nrow=nSubjects*maxTime,ncol=pfixed,byrow=FALSE) + xfixed
 	}
-	if (abs(rho)==1) {x0 = xfixed}
+	if (abs(rho)==1) {x0 <- matrix(z,nrow=nSubjects*maxTime,ncol=pfixed,byrow=FALSE)}
 	colnames(x0) <- paste0("xtf", 1:pfixed)
 	xfixed <- x0
 	if(!is.null(pbin)){

@@ -5,8 +5,8 @@
 \title{Cross-validation for pcoxtime}
 \usage{
 pcoxtimecv(
-  formula = formula(data),
-  data = sys.parent(),
+  formula,
+  data,
   alphas = 1,
   lambdas = NULL,
   nlambdas = 100,
@@ -52,7 +52,7 @@ variables specified in the formula.}
 
 \item{devtype}{loss to use for cross-validation. Currently, two options are available but versions will implement \code{\link[pcoxtime]{concordScore.pcoxtime}} loss too. The two are, default \code{(devtype = "vv")} Verweij Van Houwelingen partial-likelihood deviance and basic cross-validated parial likelihood \code{devtype = "basic"}. See Dai, B., and Breheny, P. (2019) for details.}
 
-\item{refit}{logical. Whether to return solution path based on optimal lambda and alpha picked by the model. Default is \code{refit = TRUE}.}
+\item{refit}{logical. Whether to return solution path based on optimal lambda and alpha picked by the model. Default is \code{refit = FALSE}.}
 
 \item{maxiter}{maximum number of iterations to convergence. Default is \eqn{1e5}. Consider increasing it if the model does not converge.}
 

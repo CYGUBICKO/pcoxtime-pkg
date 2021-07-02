@@ -35,7 +35,7 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
   arma::vec starttime;
   arma::vec endtime;
   arma::vec events;
-  NumericVector cond;
+  Rcpp::NumericVector cond;
   arma::rowvec P;
 
   if (p == 2) {
@@ -93,7 +93,7 @@ Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta
 Rcpp::NumericVector gradient(const arma::mat& X, const arma::vec& beta0,  const arma::vec& res_est, const double lambda, const double alpha){
   // Number of observations
   double N = X.n_rows;
-  NumericVector grad;
+  Rcpp::NumericVector grad;
   grad = -1/N * (X.t() * res_est) + lambda*(1-alpha)*beta0;
   return(grad);
 }
@@ -102,18 +102,18 @@ Rcpp::NumericVector gradient(const arma::mat& X, const arma::vec& beta0,  const 
 // [[Rcpp::export]]
 Rcpp::NumericVector proxupdate(const arma::vec& beta0, const  arma::vec& grad, const double gamma, const double lambda, const double alpha){
   arma::vec z = beta0 - gamma * grad;
-  NumericVector z2 = Rcpp::as<Rcpp::NumericVector>(wrap(z));
+  Rcpp::NumericVector z2 = Rcpp::as<Rcpp::NumericVector>(wrap(z));
   double theta = gamma * lambda * alpha;
-  NumericVector betak = Rcpp::as<Rcpp::NumericVector>(sign(z2)) * (pmax(abs(z2) - theta, 0.0));
+  Rcpp::NumericVector betak = Rcpp::as<Rcpp::NumericVector>(sign(z2)) * (pmax(abs(z2) - theta, 0.0));
   return(betak);
 }
 
 
 // Barzilia-Borwien step size adjustment
 // [[Rcpp::export]]
-double bbstep(const NumericVector& beta, const NumericVector& beta_prev, const NumericVector& grad, const NumericVector& grad_prev){
-  NumericVector sk = beta - beta_prev;
-  NumericVector yk = grad - grad_prev;
+double bbstep(const Rcpp::NumericVector& beta, const Rcpp::NumericVector& beta_prev, const Rcpp::NumericVector& grad, const Rcpp::NumericVector& grad_prev){
+  Rcpp::NumericVector sk = beta - beta_prev;
+  Rcpp::NumericVector yk = grad - grad_prev;
   double gamma = std::max(sum(sk*yk)/sum(pow(yk, 2)), sum(pow(sk,2))/sum(sk*yk));
   return(gamma);
 }
@@ -127,11 +127,11 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
   , const CharacterVector& xnames, bool lambmax = false){
   
   // Intialize Beta
-  NumericMatrix beta(p, maxiter+1);
+  Rcpp::NumericMatrix beta(p, maxiter+1);
   rownames(beta) = xnames;
   
   // Initialize gradients
-  NumericMatrix grads(p, maxiter+1);
+  Rcpp::NumericMatrix grads(p, maxiter+1);
   rownames(grads) = xnames;
   
   // Negative log-likelihoods
@@ -146,7 +146,7 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
   // Barzilia-Borwien step initialization
   List nll_init = nloglik(Y, X, beta0, lambda, alpha);
   arma::vec res_est_init = nll_init["res.est"];
-  NumericVector grad_init = gradient(X, beta0, res_est_init, lambda, alpha);
+  Rcpp::NumericVector grad_init = gradient(X, beta0, res_est_init, lambda, alpha);
   
   // Solution path using lambda which give all B_hat = 0
   double gtol = max(abs(grad_init));
@@ -166,7 +166,7 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
   std::string message = "Model did not converge after " + std::to_string(maxiter) + " iterations, consider increasing maxiter...";
   
   // Proximal updates and iterations
-  NumericVector beta_hat(p);
+  Rcpp::NumericVector beta_hat(p);
   double devcheck;
   List nll;
   int iter = 0;
@@ -178,16 +178,16 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
       beta(_, k+1) = proxupdate(beta(_, k), grads(_, k+1), gamma2, lambda, alpha);
       
       // Check for convergence
-      devcheck = sqrt(sum(pow(beta(_,k+1) - beta(_, k), 2)))/gamma2;
-		// devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma2;
+      // devcheck = sqrt(sum(pow(beta(_,k+1) - beta(_, k), 2)))/gamma2;
+		devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma2;
     } else {
       beta(_, k+1) = proxupdate(beta(_, k), grads(_, k), gamma(k), lambda, alpha);
       nll = nloglik(Y, X, beta(_, k+1), lambda, alpha);
       grads(_, k+1) = gradient(X, beta(_, k+1), nll["res.est"], lambda, alpha);
       gamma(k+1) = bbstep(beta(_, k+1), Rcpp::as<Rcpp::NumericVector>(wrap(beta(_, k))), grads(_,k+1), grads(_,k));
       // Check for convergence
-		devcheck = sqrt(sum(pow((beta(_,k+1) - beta(_, k)), 2)))/gamma(k);
-		// devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma(k);
+		// devcheck = sqrt(sum(pow((beta(_,k+1) - beta(_, k)), 2)))/gamma(k);
+		devcheck = max(abs(beta(_,k+1) - beta(_, k)))/gamma(k);
     }
     deviances(k) = devcheck;
     nlls(k+1) = nll["nll.est"];
@@ -201,9 +201,9 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
   }
   
   beta_hat.attr("names") = xnames;
-  NumericVector grad_opt = grads(_, iter);
+  Rcpp::NumericVector grad_opt = grads(_, iter);
   grad_opt.attr("names") = xnames;
-  NumericVector n_risk = nll["n.risk"];
+  Rcpp::NumericVector n_risk = nll["n.risk"];
   n_risk.attr("dim") = R_NilValue;
   
   return Rcpp::List::create(Rcpp::Named("beta_hat", wrap(beta_hat))
@@ -220,7 +220,7 @@ Rcpp::List proxiterate(const arma::mat& Y, const arma::mat& X
 
 // Check KKT violations
 // [[Rcpp::export]]
-LogicalVector pcoxKKTcheck(const NumericVector& grad, const NumericVector& beta0, const double lambda, const double alpha) {
+LogicalVector pcoxKKTcheck(const Rcpp::NumericVector& grad, const Rcpp::NumericVector& beta0, const double lambda, const double alpha) {
   LogicalVector index1 = abs(grad) >= (alpha * lambda);
   LogicalVector index2 = beta0 == 0.0;
   LogicalVector index = index1 & index2;
@@ -238,14 +238,14 @@ Rcpp::List lambdaiterate(const arma::mat& Y, const arma::mat& X
 	int nlambda = lambdas.n_elem;
   
 	// Intialize Beta-lambda matrix
-	NumericMatrix betaL(p, nlambda);
+	Rcpp::NumericMatrix betaL(p, nlambda);
 	rownames(betaL) = xnames;
 
 	// Min Negative log-likelihoods
-	NumericVector min_nloglikL(nlambda);
+	Rcpp::NumericVector min_nloglikL(nlambda);
 
 	// Cross-validation Min Negative log-likelihoods
- 	NumericVector flogL(nlambda);
+ 	Rcpp::NumericVector flogL(nlambda);
 	
 	for (int l = 0; l < nlambda; l++) {
 		List out = proxiterate(Y, X, beta0, lambdas(l), alpha, p, maxiter, tol, xnames, lambmax = false);

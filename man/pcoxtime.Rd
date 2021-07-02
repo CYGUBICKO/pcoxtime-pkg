@@ -6,8 +6,8 @@
 \title{Fit penalized Cox model}
 \usage{
 pcoxtime(
-  formula = formula(data),
-  data = sys.parent(),
+  formula,
+  data,
   alpha = 1,
   lambda = 1,
   maxiter = 1e+05,

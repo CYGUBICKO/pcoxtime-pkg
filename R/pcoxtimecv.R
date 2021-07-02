@@ -28,7 +28,7 @@
 #' @param nfolds number of folds. Default is \code{10}. The smallest allowable is \code{nfolds = 3}.
 #' @param foldids an optional sequence of values between \code{1} and {nfolds} specifying what fold each observation is in. This is important when comparing performance across models. If specified, \code{nfolds} can be missing.
 #' @param devtype loss to use for cross-validation. Currently, two options are available but versions will implement \code{\link[pcoxtime]{concordScore.pcoxtime}} loss too. The two are, default \code{(devtype = "vv")} Verweij Van Houwelingen partial-likelihood deviance and basic cross-validated parial likelihood \code{devtype = "basic"}. See Dai, B., and Breheny, P. (2019) for details.
-#' @param refit logical. Whether to return solution path based on optimal lambda and alpha picked by the model. Default is \code{refit = TRUE}.
+#' @param refit logical. Whether to return solution path based on optimal lambda and alpha picked by the model. Default is \code{refit = FALSE}.
 #' @param maxiter maximum number of iterations to convergence. Default is \eqn{1e5}. Consider increasing it if the model does not converge.
 #' @param tol convergence threshold for proximal gradient gradient descent. Each proximal update continues until the relative change in all the coefficients (i.e. \eqn{\sqrt{\sum(\beta_{k+1} - \beta_k)^2}}/stepsize) is less than tol. The default value is \eqn{1e-8}.
 #' @param quietly logical. If TRUE, refit progress is printed.
@@ -101,17 +101,18 @@
 #' @import foreach
 #' @import doParallel 
 
-pcoxtimecv <- function(formula = formula(data), data = sys.parent()
-	, alphas = 1, lambdas = NULL, nlambdas = 100, lammin_fract = NULL
-	, lamfract = 0.6, nfolds = 10, foldids = NULL, devtype = "vv"
-	, refit = FALSE, maxiter = 1e5, tol = 1e-8, quietly = FALSE
-	, seed = NULL, nclusters = 1, na.action = na.omit, ...) {
+pcoxtimecv <- function(formula, data, alphas = 1, lambdas = NULL
+	, nlambdas = 100, lammin_fract = NULL, lamfract = 0.6, nfolds = 10
+	, foldids = NULL, devtype = "vv", refit = FALSE, maxiter = 1e5
+	, tol = 1e-8, quietly = FALSE, seed = NULL, nclusters = 1
+	, na.action = na.omit, ...) {
 	
 	if(is.null(seed)){seed = 1254}
 	set.seed(seed)
 	
 	# survival package data format
-	sobj <- riskset(formula = formula, data = data, na.action = na.action)
+	if (missing(formula)) stop("a formula argument is required")
+	sobj <- if (missing(data)) riskset(formula = formula, na.action = na.action) else riskset(formula = formula, data = data, na.action = na.action) 
 	Y <- sobj[["Y"]]
 	storage.mode(Y) <- "double"
 	X <- sobj[["X"]]
@@ -128,7 +129,7 @@ pcoxtimecv <- function(formula = formula(data), data = sys.parent()
 	
 	if(lamfract<0.5 | lamfract > 1)stop("Choose lamfract between 0.5 and 1")
 	if(!is.null(colnames(X))){xnames = colnames(X)}else{xnames = paste0("X", 1:p)}
-	if (any(alphas > 1))stop("Choose alphas between 0 to 1.")
+	if (any(alphas > 1) | any(alphas < 0))stop("Choose alphas between 0 to 1.")
 	# Reset alpha if > 1
 	if (length(alphas)==1 && any(alphas > 1)){alphas_old <- alphas; alphas <- 1} else{alphas_old <- alphas}
 	if(!is.null(lambdas) && length(lambdas)<2)stop("Need more than one value of lambda for cross-validation.")
@@ -298,19 +299,6 @@ pcoxtimecv <- function(formula = formula(data), data = sys.parent()
 	return(result)
 }
 
-
-## Minimum cve: copied from glmnet because it's internal function
-getmin <- function(lambda, cvm, cvsd) {
-	cvmin <- min(cvm)
-	idmin <- cvm <= cvmin
-	lambda.min <- max(lambda[idmin])
-	idmin <- match(lambda.min, lambda)
-	semin <- (cvm + cvsd)[idmin]
-	idmin <- cvm <= semin
-	lambda.1se <- max(lambda[idmin])
-	list(lambda.min = lambda.min, lambda.1se = lambda.1se, cv.min = cvmin)
-}
-
 ## Iterate over folds 
 onefold <- function(Y_train, X_train, Y_test, X_test, beta0
 	, alpha, lambdas, devtype, p, tol, xnames, lambmax, maxiter){
@@ -349,5 +337,27 @@ onefold <- function(Y_train, X_train, Y_test, X_test, beta0
 	}, error = function(e){
 		cat("Possible non-convergence for some lambdas in one of the folds. \nConsider increasing maxiter or reducing tol")
 	})
+}
+
+
+## These function is directly copied from the
+## glmnet package:
+##        Jerome Friedman, Trevor Hastie, Robert Tibshirani (2010).
+##        Regularization Paths for Generalized Linear Models via
+##        Coordinate Descent.
+##        Journal of Statistical Software, 33(1), 1-22.
+##        URL http://www.jstatsoft.org/v33/i01/.
+## The reason it is copied here is because it is an internal function
+## and hence not exported into the global environment.
+
+getmin <- function(lambda, cvm, cvsd) {
+	cvmin <- min(cvm)
+	idmin <- cvm <= cvmin
+	lambda.min <- max(lambda[idmin])
+	idmin <- match(lambda.min, lambda)
+	semin <- (cvm + cvsd)[idmin]
+	idmin <- cvm <= semin
+	lambda.1se <- max(lambda[idmin])
+	list(lambda.min = lambda.min, lambda.1se = lambda.1se, cv.min = cvmin)
 }
 

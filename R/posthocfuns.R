@@ -481,3 +481,32 @@ concordScore.pcoxtime <- function(fit, newdata = NULL, stats = FALSE, reverse = 
 	return(conindex)
 }
 
+#' Extract optimal parameter values
+#'
+#' Extract cross-validation summaries and data frames.
+#'
+#' @details
+#' Extract cross-validation summaries based on the optimal parameters or data frames containing all the summaries for all the parameter values.
+#'
+#' @param object \code{\link[pcoxtime]{pcoxtimecv}} object
+#' @param what the summary or data frame to extract. Currently, three options are available: \code{what = "optimal"} extracts a data frame showing optimal parameter values, \code{what = "cvm"} extracts the data frame containing the mean cross-validation error for various lambda-alpha combination, and \code{what = "coef"}, requires \code{refit = TRUE} in \code{\link[pcoxtime]{pcoxtimecv}},  extracts a data frame containing the coefficient estimates for various lambda-alpha combination.
+#' @param ... for future implementations
+#'
+#' @return A data frame depending on the specification described above.
+#'
+#' @export
+
+extractoptimal.pcoxtimecv <- function(object, what=c("optimal", "cvm", "coefs"), ...) {
+	what <- match.arg(what)
+	if (what=="optimal") {
+		out <- object$dfs$min_metrics_df
+	} else if (what=="cvm") {
+		out <- object$dfs$cvm
+	} else {
+		out <- object$fit$beta
+		if (is.null(out)) warning("Run the model with refit=TRUE to extract cross-validation coefficients.")
+	}
+	return(out)
+}
+
+

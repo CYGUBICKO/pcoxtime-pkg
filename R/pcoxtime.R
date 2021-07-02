@@ -148,15 +148,18 @@
 #' @name pcoxtime
 #' @useDynLib pcoxtime, .registration=TRUE
 
-pcoxtime <- function(formula = formula(data), data = sys.parent()
-	, alpha = 1, lambda = 1, maxiter = 1e5, tol = 1e-8
-	, quietly = FALSE, lambmax = FALSE, origin_scale = TRUE
-	, contrasts.arg = NULL, xlevs = NULL, na.action = na.omit, ...) {
+pcoxtime <- function(formula, data, alpha = 1, lambda = 1
+	, maxiter = 1e5, tol = 1e-8, quietly = FALSE, lambmax = FALSE
+	, origin_scale = TRUE, contrasts.arg = NULL, xlevs = NULL
+	, na.action = na.omit, ...) {
 	
 	# Reset alpha if > 1
 	if (alpha > 1){alpha_old <- alpha; alpha <- 1} else{alpha_old <- alpha}
 
 	# survival package data format
+	if (missing(formula)) stop("a formula argument is required")
+   sobj <- if (missing(data)) riskset(formula = formula, na.action = na.action) else riskset(formula = formula, data = data, na.action = na.action)
+
 	sobj <- riskset(formula = formula, data = data, contrasts.arg = contrasts.arg, xlevs = xlevs, na.action = na.action)
 	Y <- sobj[["Y"]]
 	storage.mode(Y) <- "double"

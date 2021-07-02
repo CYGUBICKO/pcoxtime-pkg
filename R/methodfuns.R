@@ -41,13 +41,17 @@ print.pcoxtime <- function(x, ..., nprint = 10){
 #' @export
 #' @export print.pcoxsurvfit
 print.pcoxsurvfit <- function(x, ...){
-	if (!inherits(x, "pcoxbasehaz")){
-		cat("Call:\n")
-		print(x$call)
+	cat("Call:\n")
+	print(x$call)
+	if (inherits(x, "pcoxbasehaz")) {
+		out <- data.frame(time=x$time, hazard=x$hazard, surv=x$surv)
+		print(out, row.names = FALSE, ...)
+		cat("\n")
+	} else {
 		out <- data.frame(cbind(n = x$n, events = sum(x$events)))
 		print(out, row.names = FALSE, ...)
 		cat("\n")
-	}
+	} 
 }
 
 #' Print cross-validated pcoxtime object
@@ -74,6 +78,50 @@ print.pcoxtimecv <- function(x, ...){
 	cat("\n")
 }
 
+#' Extract coefficient estimates of pcoxtimecv object
+#' 
+#' This function extracts cross-validation estimates for a particular lambda.
+#'
+#' @details Extract the coefficient estimates for optimal lambda-alpha pair or based on specified the value of lambda for an optimal alpha. If the value of lambda specified is not exact (not in lambdas), the nearest value is used, based on \code{nearest <- function(values, value){values[which(abs(values-value)==min(abs(values-value)))]}}. It requires that \code{\link[pcoxtime]{pcoxtimecv}} is run with \code{refit = TRUE}.
+#'
+#' @param object \code{\link[pcoxtime]{pcoxtimecv}} object
+#' @param lambda the value of lambda for which to return the coefficient estimates. It can be any of the character string, "min", "optimal" or "best" for optimal lambda; "1se" for 1 standard error lambda; or any numeric value for lambda. See details.
+#' @param ... for future implementations
+#'
+#' @return A data frame of coefficient estimates.
+#'
+#' @method coef pcoxtimecv
+#' @export
+coef.pcoxtimecv <- function(object, lambda, ...){
+	betas <- object$fit$beta
+	if (is.null(betas))stop("Run pcoxtimecv with refit = TRUE to extract coefficients")
+	nearest <- function(values, value){
+		values[which(abs(values-value)==min(abs(values-value)))]
+	}
+	if (missing(lambda)) lambda <- "min"
+	if (lambda=="min" | lambda=="optimal" | lambda=="best") {
+		lambda <- object$lambda.min
+	} else if (lambda=="1se") {
+		lambda <- object$lambda.1se
+	}
+	values <- unique(betas$lambda)
+	lambda <- nearest(values, lambda)
+	betas <- betas[betas$lambda==lambda, ]
+	return(betas)
+}
+
+#' Extract coefficient estimates of pcoxtimecv object
+#' 
+#' @return A vector of coefficient estimates.
+#'
+#' @method coefficients pcoxtimecv
+#' @rdname coef.pcoxtimecv
+#' @export 
+coefficients.pcoxtimecv <- function(object, lambda, ...){
+	return(coef.pcoxtimecv(object, lambda, ...))
+}
+
+
 #' Extract coefficient estimates of pcoxtime object
 #' 
 #' This function extracts the estimates for all the coefficients.
@@ -87,7 +135,6 @@ print.pcoxtimecv <- function(x, ...){
 #'
 #' @method coef pcoxtime
 #' @export
-#' @export coef.pcoxtime
 coef.pcoxtime <- function(object, ...){
 	return(drop(object$coef))
 }
@@ -99,7 +146,6 @@ coef.pcoxtime <- function(object, ...){
 #' @method coefficients pcoxtime
 #' @rdname coef.pcoxtime
 #' @export 
-#' @export coefficients.pcoxtime
 coefficients.pcoxtime <- function(object, ...){
 	return(drop(object$coef))
 }
@@ -112,3 +158,6 @@ pcoxbasehaz <- function(fit, centered = TRUE) UseMethod("pcoxbasehaz")
 
 #' @export
 concordScore <- function(fit, newdata = NULL, stats = FALSE, reverse = TRUE, ...) UseMethod("concordScore")
+
+#' @export
+extractoptimal <- function(object, what=c("optimal", "cvm", "coefs"), ...) UseMethod("extractoptimal")
