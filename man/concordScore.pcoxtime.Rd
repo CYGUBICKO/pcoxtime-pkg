@@ -39,7 +39,7 @@ lam <- 0.1
 alp <- 0.5
 pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran
-	, lambda = lam 
+	, lambda = lam
 	, alpha = alp
 )
 c1 <- concordScore(pfit1)
@@ -50,7 +50,7 @@ lam <- 0
 alp <- 1
 pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran
-	, lambda = lam 
+	, lambda = lam
 	, alpha = alp
 )
 c2 <- concordScore(pfit2)

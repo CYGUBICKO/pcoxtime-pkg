@@ -37,7 +37,7 @@ lam <- 0.1
 alp <- 0.5
 pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran
-	, lambda = lam 
+	, lambda = lam
 	, alpha = alp
 )
 r1 <- predictRisk(pfit1, newdata = veteran[1:80,], times = 10)
@@ -47,7 +47,7 @@ lam <- 0
 alp <- 1
 pfit2 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
 	, data = veteran
-	, lambda = lam 
+	, lambda = lam
 	, alpha = alp
 )
 r2 <- predictRisk(pfit2, newdata = veteran[1:80,], times = 10)

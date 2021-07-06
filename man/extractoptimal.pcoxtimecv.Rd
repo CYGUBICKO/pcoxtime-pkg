@@ -2,6 +2,7 @@
 % Please edit documentation in R/posthocfuns.R
 \name{extractoptimal.pcoxtimecv}
 \alias{extractoptimal.pcoxtimecv}
+\alias{extractoptimal}
 \title{Extract optimal parameter values}
 \usage{
 \method{extractoptimal}{pcoxtimecv}(object, what = c("optimal", "cvm", "coefs"), ...)

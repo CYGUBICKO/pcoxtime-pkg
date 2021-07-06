@@ -2,10 +2,10 @@
 #'
 #' This function prints a summary of the pcoxtime object.
 #'
-#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values. 
+#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates with their corresponding exponentiated values.
 #' Depending on the number of coefficients, \code{nprint} can be used to specify the number of coefficients to print out.
 #'
-#' @param x fitted \code{\link[pcoxtime]{pcoxtime}} model object 
+#' @param x fitted \code{\link[pcoxtime]{pcoxtime}} model object
 #' @param ... for future implementations
 #' @param nprint number of coefficients to print out
 #'
@@ -13,7 +13,6 @@
 #'
 #' @method print pcoxtime
 #' @export
-#' @export print.pcoxtime
 print.pcoxtime <- function(x, ..., nprint = 10){
 	cat("Call:\n")
 	print(x$call)
@@ -39,26 +38,41 @@ print.pcoxtime <- function(x, ..., nprint = 10){
 #'
 #' @method print pcoxsurvfit
 #' @export
-#' @export print.pcoxsurvfit
 print.pcoxsurvfit <- function(x, ...){
 	cat("Call:\n")
 	print(x$call)
-	if (inherits(x, "pcoxbasehaz")) {
-		out <- data.frame(time=x$time, hazard=x$hazard, surv=x$surv)
-		print(out, row.names = FALSE, ...)
-		cat("\n")
-	} else {
-		out <- data.frame(cbind(n = x$n, events = sum(x$events)))
-		print(out, row.names = FALSE, ...)
-		cat("\n")
-	} 
+	out <- data.frame(cbind(n = x$n, events = sum(x$events)))
+	print(out, row.names = FALSE, ...)
+	cat("\n")
+}
+
+#' Print baseline hazard function data frame
+#'
+#' Print the head of baseline hazard function data frame.
+#'
+#' @details Provide a summary of \code{\link[pcoxtime]{pcoxbasehaz.pcoxtime}} object.
+#'
+#' @param x the result of a call to the \code{\link[pcoxtime]{pcoxbasehaz.pcoxtime}} function.
+#' @param n number of rows to print. Default is 5.
+#' @param ... for future implementations
+#'
+#' @return The call to the \code{\link[pcoxtime]{pcoxbasehaz.pcoxtime}} and the head of baseline hazard function data frame.
+#'
+#' @method print pcoxbasehaz
+#' @export
+print.pcoxbasehaz <- function(x, n=5, ...){
+	cat("Call:\n")
+	print(x$call)
+	out <- data.frame(time=x$time, hazard=x$hazard, surv=x$surv)
+	print(head(out, n=n), row.names = FALSE, ...)
+	cat("\n")
 }
 
 #' Print cross-validated pcoxtime object
 #'
 #' Print the summary of the result of cross-validation for a pcoxtime object.
 #'
-#' @details 
+#' @details
 #' A summary of optimal lambda and alpha for training pcoxtime model.
 #'
 #' @param x \code{\link[pcoxtime]{pcoxtimecv}} object
@@ -68,7 +82,6 @@ print.pcoxsurvfit <- function(x, ...){
 #'
 #' @method print pcoxtimecv
 #' @export
-#' @export print.pcoxtimecv
 print.pcoxtimecv <- function(x, ...){
 	cat("Call:\n")
 	print(x$call)
@@ -123,12 +136,12 @@ coefficients.pcoxtimecv <- function(object, lambda, ...){
 
 
 #' Extract coefficient estimates of pcoxtime object
-#' 
+#'
 #' This function extracts the estimates for all the coefficients.
 #'
-#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates. 
+#' @details The call that produced \code{\link[pcoxtime]{pcoxtime}} is printed, followed by coefficient estimates.
 #'
-#' @param object fitted \code{\link[pcoxtime]{pcoxtime}} model object 
+#' @param object fitted \code{\link[pcoxtime]{pcoxtime}} model object
 #' @param ... for future implementations
 #'
 #' @return A vector of coefficient estimates.
@@ -140,12 +153,12 @@ coef.pcoxtime <- function(object, ...){
 }
 
 #' Extract coefficient estimates of pcoxtime object
-#' 
+#'
 #' @return A vector of coefficient estimates.
 #'
 #' @method coefficients pcoxtime
 #' @rdname coef.pcoxtime
-#' @export 
+#' @export
 coefficients.pcoxtime <- function(object, ...){
 	return(drop(object$coef))
 }

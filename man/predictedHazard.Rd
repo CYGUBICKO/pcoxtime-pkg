@@ -10,7 +10,7 @@ predictedHazard(fit)
 \item{fit}{fitted \code{\link[pcoxtime]{pcoxtime}}}
 }
 \value{
-A list of S3 objects. 
+A list of S3 objects.
 \item{n}{number of observations used in the fit.}
 \item{events}{total number of events of interest in the fit.}
 \item{time}{time points defined by the risk set.}

@@ -325,8 +325,6 @@ plot.pcoxtimecv <- function(x, ..., type = c("cve", "fit"), xvar = c("lambda", "
 #' @export
 
 plot.Score <- function(x, ..., type = c("roc", "auc", "brier"), pos = 0.3){
-	if (!inherits(x, "Score"))
-		stop("Object should be score. See ?riskRegression::Score")
 	type <- match.arg(type)
 	if (type == "roc"){
 		df <- x$ROC$plotframe
