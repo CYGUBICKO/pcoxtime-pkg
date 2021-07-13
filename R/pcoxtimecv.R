@@ -129,9 +129,17 @@ pcoxtimecv <- function(formula, data, alphas = 1, lambdas = NULL
 	
 	if(lamfract<0.5 | lamfract > 1)stop("Choose lamfract between 0.5 and 1")
 	if(!is.null(colnames(X))){xnames = colnames(X)}else{xnames = paste0("X", 1:p)}
-	if (any(alphas > 1) | any(alphas < 0))stop("Choose alphas between 0 to 1.")
-	# Reset alpha if > 1
-	if (length(alphas)==1 && any(alphas > 1)){alphas_old <- alphas; alphas <- 1} else{alphas_old <- alphas}
+	
+	if (any(alphas>1) | any(alphas < 0)) {
+		if (length(alphas) > 1){
+			stop("Choose alphas between 0 to 1.")
+		} else {
+			# Reset alpha if > 1 or  < 0
+			alphas <- 1
+			warning("alphas >1 | alphas < 0; setting to default: alphas = 1")
+		}
+	}
+
 	if(!is.null(lambdas) && length(lambdas)<2)stop("Need more than one value of lambda for cross-validation.")
 	if(nclusters < 1)stop("Number of clusters must be at least 1.")
 	if(!is.null(lambdas)) nlambdas <- length(lambdas)

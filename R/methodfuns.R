@@ -105,6 +105,7 @@ print.pcoxtimecv <- function(x, ...){
 #'
 #' @method coef pcoxtimecv
 #' @export
+#' @importFrom utils head
 coef.pcoxtimecv <- function(object, lambda, ...){
 	betas <- object$fit$beta
 	if (is.null(betas))stop("Run pcoxtimecv with refit = TRUE to extract coefficients")
