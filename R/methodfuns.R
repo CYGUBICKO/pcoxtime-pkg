@@ -174,4 +174,11 @@ pcoxbasehaz <- function(fit, centered = TRUE) UseMethod("pcoxbasehaz")
 concordScore <- function(fit, newdata = NULL, stats = FALSE, reverse = TRUE, ...) UseMethod("concordScore")
 
 #' @export
-extractoptimal <- function(object, what=c("optimal", "cvm", "coefs"), ...) UseMethod("extractoptimal")
+extractoptimal <- function(object, what=c("optimal", "cvm", "coefs"), ...) UseMethod("extractoptimal") 
+
+#' @export
+varimp <- function(object, newdata, type=c("coef", "perm", "model")
+	, relative=TRUE, nrep=50, parallelize=FALSE, nclusters=1
+	, estimate=c("mean", "quantile"), probs=c(0.025, 0.5, 0.975)
+	, ...) UseMethod("varimp")
+

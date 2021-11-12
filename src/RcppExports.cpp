@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // nloglik
 Rcpp::List nloglik(const arma::mat& Y, const arma::mat& X, const arma::vec& beta0, const double lambda, const double alpha);
 RcppExport SEXP _pcoxtime_nloglik(SEXP YSEXP, SEXP XSEXP, SEXP beta0SEXP, SEXP lambdaSEXP, SEXP alphaSEXP) {

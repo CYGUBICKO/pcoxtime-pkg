@@ -371,3 +371,79 @@ plot.Score <- function(x, ..., type = c("roc", "auc", "brier"), pos = 0.3){
 	return(p1)
 }
 
+#' Generic method for plotting variable importance
+#'
+#' Plots variable importance for \code{\link[pcoxtime]{pcoxtime}} fit.
+#'
+#' @param x a \code{\link[pcoxtime]{varimp}} object. 
+#' @param ... for future implementations.
+#' @param pos spacing between labels.
+#' @param drop_zero if \code{TRUE} only nonzero estimates are shown.
+#'
+#' @seealso
+#' \code{\link[pcoxtime]{varimp}}
+#'
+#' @import ggplot2
+#' @export
+
+plot.varimp <- function(x, ..., pos = 0.5, drop_zero = TRUE){
+	xsign <- x$sign
+	if (!is.null(xsign)) {
+		x$sign <- ifelse(xsign==1, "+", ifelse(xsign==-1, "-", "0"))
+	} else {
+		xsign <- 1
+	}
+	est <- attr(x, "estimate")
+	if (est=="quantile") {
+		x[ "Overall"] <- x$estimate
+	}
+	x <- x[order(x$Overall), ]
+	if (drop_zero){
+		x <- x[x$Overall!=0, ]
+		x <- droplevels(x)
+	}
+	Overall <- NULL
+	lower <- NULL
+	upper <- NULL
+	nsigns <- unique(xsign)
+	pos <- position_dodge(width = pos)
+	p0 <- ggplot(x, aes(x = reorder(terms, Overall), y = Overall))
+	
+	if (est=="quantile") {
+		if (length(nsigns)>1) {
+			p0 <- (p0
+				+ geom_point(aes(shape=sign), position = pos)
+				+ scale_shape_manual(name = "Sign", values=c(1,16, 15))
+				+ geom_linerange(aes(ymin=lower, ymax=upper, lty = sign), position = pos)
+				+ labs(linetype = "Sign")
+			)
+		} else {
+			p0 <- (p0 
+				+ geom_point(position = pos)
+				+ geom_linerange(aes(ymin=lower, ymax=upper), position=pos)
+			)
+		}
+	} else {
+		if (length(nsigns)>1) {
+			p0 <- (p0
+				+ geom_point(aes(shape=sign), position = pos)
+				+ scale_shape_manual(name = "Sign", values=c(1,16, 15))
+				+ geom_linerange(aes(ymin = 0, ymax = Overall, lty = sign), position = pos)
+				+ labs(linetype = "Sign")
+			)
+		} else {
+			p0 <- (p0 
+				+ geom_point(position = pos)
+				+ geom_linerange(aes(ymin=0, ymax=Overall), position=pos)
+			)
+		}
+	}
+	p1 <- (p0
+		+ scale_colour_viridis_d(option = "inferno")
+		+ labs(x = "", y = "Importance")
+		+ coord_flip(clip = "off", expand = TRUE)
+		+ theme_minimal()	
+	)
+	return(p1)
+}
+

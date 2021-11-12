@@ -507,3 +507,211 @@ extractoptimal.pcoxtimecv <- function(object, what=c("optimal", "cvm", "coefs"),
 }
 
 
+#' Permutation variable importance
+#'
+#' Computes the relative importance based on random permutation of focal variable for pcoxtime model.
+#'
+#' @details
+#' Given predictors \code{x_1, x_2, ..., x_n} used to predict the survival outcome, \code{y}. Suppose, for example, \code{x_1} has low predictive power for the response. Then, if we randomly permute the observed values for \code{x_1}, then the prediction for \code{y} will not change much. Conversely, if any of the predictors highly predicts the response, the permutation of that specific predictor will lead to a considerable change in the predictive measure of the model. In this case, we conclude that this predictor is important. In our implementation, Harrel's concordance index is used to measure the prediction accuracy.
+#'
+#' @param object fitted \code{\link[pcoxtime]{pcoxtime}}.
+#' @param newdata data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.
+#' @param nrep number of replicates for permutations. Default is \code{nrep = 50}.
+#' @param parallelize whether to run in parallel. Default is \code{FALSE}.
+#' @param nclusters number of cores to use if \code{parallelize = TRUE}.
+#' @param estimate character string specify which summary statistic to use for the estimates. Default is \code{"mean"}.
+#' @param probs numeric vector of probabilities with values in \code{[0,1]}.
+#' @param ... for future implementation.
+#'
+#' @return a named vector of variable scores (\code{estimate = "mean"}) or a data frame (\code{estimate = "quantile"}).
+#'
+#' @keywords internal
+
+pvimp.pcoxtime <- function(object, newdata, nrep=50
+	, parallelize=FALSE, nclusters=1, estimate=c("mean", "quantile")
+	, probs=c(0.025, 0.5, 0.975), ...) {
+	estimate <- match.arg(estimate)
+	# Overall score
+	overall_c <- concordScore.pcoxtime(object, newdata=newdata, stats=FALSE, reverse=TRUE, ...)
+	xvars <- all.vars(formula(delete.response(terms(object))))
+	N <- NROW(newdata)
+	if (parallelize) {
+		## Setup parallel because serial takes a lot of time. Otherwise you can turn it off
+		nn <- min(parallel::detectCores(), nclusters)
+		if (nn < 2){
+			foreach::registerDoSEQ()
+		} else{
+			cl <-  parallel::makeCluster(nn)
+			doParallel::registerDoParallel(cl)
+			on.exit(parallel::stopCluster(cl))
+		}
+		x <- NULL
+		permute_df <- newdata[rep(seq(N), nrep), ]
+		vi <- foreach(x = xvars, .export="concordScore.pcoxtime") %dopar% {
+			if (is.factor(permute_df[,x])) {
+				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
+				permute_var <- factor(permute_var, levels = levels(permute_df[,x]))
+			} else {
+				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
+			}
+			index <- rep(1:nrep, each = N)
+			permute_df[, x] <- permute_var
+			perm_c <- unlist(lapply(split(permute_df, index), function(d){
+				concordScore.pcoxtime(object, newdata = d, stats = FALSE, reverse=TRUE, ...)
+			}))
+			est <- (overall_c - perm_c)/overall_c
+			out <- switch(estimate
+				, mean={
+					out2 <- mean(est)
+					names(out2) <- x
+					out2
+				}
+				, quantile={
+					out2 <- cbind.data.frame(...xx=x, t(quantile(est, probs = probs, na.rm = TRUE)))
+					colnames(out2) <- c("terms", "lower", "estimate", "upper")
+					out2
+				}
+			)
+			out
+		}
+	} else {
+		permute_df <- newdata[rep(seq(N), nrep), ]
+		vi <- sapply(xvars, function(x){
+			if (is.factor(permute_df[,x])) {
+				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
+				permute_var <- factor(permute_var, levels = levels(permute_df[,x]))
+			} else {
+				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
+			}
+			index <- rep(1:nrep, each = N)
+			permute_df[, x] <- permute_var
+			perm_c <- unlist(lapply(split(permute_df, index), function(d){
+				concordScore.pcoxtime(object, newdata = d, stats = FALSE, reverse=TRUE, ...)
+			}))
+			est <- (overall_c - perm_c)/overall_c
+			out <- switch(estimate
+				, mean={
+					out2 <- mean(est)
+					out2
+				}
+				, quantile={
+					out2 <- cbind.data.frame(...xx=x, t(quantile(est, probs = probs, na.rm = TRUE)))
+					colnames(out2) <- c("terms", "lower", "estimate", "upper")
+					out2
+				}
+			)
+			out
+		}, simplify = FALSE)
+	}
+	out <- switch(estimate
+		, mean={
+			unlist(vi)
+		}
+		, quantile={
+			est <- do.call("rbind", vi)
+			rownames(est) <- NULL
+			est
+		}
+	)
+	return(out)
+}
+
+
+#' Coefficient variable importance 
+#'
+#' @details
+#' Absolute value of the coefficients (parameters) corresponding the tuned pcoxtime object.
+#'
+#' @param object fitted \code{\link[pcoxtime]{pcoxtime}}.
+#' @param relative logical. If \code{TRUE} the scores are divided by the absolute sum of the coefficients.
+#' @param ... for future implementation.
+#'
+#' @return a named vector of variable scores (\code{estimate = "mean"}) or a data frame (\code{estimate = "quantile"}).
+#'
+#' @keywords internal
+
+coefvimp.pcoxtime <- function(object, relative=TRUE, ...) {
+	out <- data.frame(Overall=coef(object))
+	out$sign <- sign(out$Overall)
+	out$Overall <- abs(out$Overall)
+	if (relative){
+		out$Overall <- out$Overall/sum(out$Overall, na.rm = TRUE)
+	}
+	out$terms <- rownames(out)
+	rownames(out) <- NULL
+	out <- out[, c("terms", "Overall", "sign")]
+	return(out)
+}
+
+#' Compute variable or coefficient importance score
+#'
+#' @aliases varimp
+#'
+#' @details
+#' Absolute value of the coefficients (parameters) corresponding the \code{\link[pcoxtime]{pcoxtime}} object (\code{type = "coef"}). Otherwise, variable level importance is computed using permutation (\code{type = "perm"}).
+#' In the case of permutation: given predictors \code{x_1, x_2, ..., x_n} used to predict the survival outcome, \code{y}. Suppose, for example, \code{x_1} has low predictive power for the response. Then, if we randomly permute the observed values for \code{x_1}, then the prediction for \code{y} will not change much. Conversely, if any of the predictors highly predicts the response, the permutation of that specific predictor will lead to a considerable change in the predictive measure of the model. In this case, we conclude that this predictor is important. In our implementation, Harrel's concordance index is used to measure the prediction accuracy.
+#'
+#' @param object fitted \code{\link[pcoxtime]{pcoxtime}}.
+#' @param newdata data frame containing the variables appearing on the right hand side of \code{\link[pcoxtime]{pcoxtime}} formula.
+#' @param type if \code{type = "coef"} or \code{type = "model"} absolute value of estimated coefficients is computed. If \code{type = "perm"} variable level importance is computed using permutation.
+#' @param relative logical. If \code{TRUE} the scores are divided by the absolute sum of the coefficients.
+#' @param nrep number of replicates for permutations. Default is \code{nrep = 50}.
+#' @param parallelize whether to run in parallel. Default is \code{FALSE}.
+#' @param nclusters number of cores to use if \code{parallelize = TRUE}.
+#' @param estimate character string specify which summary statistic to use for the estimates. Default is \code{"mean"}.
+#' @param probs numeric vector of probabilities with values in \code{[0,1]}.
+#' @param ... for future implementation.
+#'
+#' @return a named vector of variable scores (\code{estimate = "mean"}) or a data frame (\code{estimate = "quantile"}).
+#'
+#' @examples
+#'
+#' if (packageVersion("survival")>="3.2.9") {
+#'    data(cancer, package="survival")
+#' } else {
+#'    data(veteran, package="survival")
+#' }
+#' # Penalized
+#' lam <- 0.1
+#' alp <- 0.5
+#' pfit1 <- pcoxtime(Surv(time, status) ~ factor(trt) + karno + diagtime + age + prior
+#'		, data = veteran
+#'		, lambda = lam
+#'		, alpha = alp
+#'	)
+#' imp1 <- varimp(pfit1, veteran)
+#' plot(imp1)
+#' @export
+
+varimp.pcoxtime <- function(object, newdata, type=c("coef", "perm", "model")
+	, relative=TRUE, nrep=50, parallelize=FALSE, nclusters=1
+	, estimate=c("mean", "quantile"), probs=c(0.025, 0.5, 0.975), ...) {
+	type <- match.arg(type)
+	estimate <- match.arg(estimate)
+	if (type=="model") {
+		type <- "coef"
+	}
+	if (type=="coef") {
+		out <- coefvimp.pcoxtime(object, relative=relative)
+	} else if (type=="perm") {
+		out <- pvimp.pcoxtime(object=object, newdata=newdata, nrep=nrep
+			, parallelize=parallelize, nclusters=nclusters, estimate=estimate
+			, probs=probs
+		)
+		if (estimate=="mean") {
+			out <- data.frame(Overall=out)
+			out$sign <- sign(out$Overall)
+			out$Overall <- abs(out$Overall)
+			if (relative) {
+				out$Overall <- out$Overall/sum(out$Overall, na.rm = TRUE)
+			}
+			out$terms <- rownames(out)
+			rownames(out) <- NULL
+			out <- out[, c("terms", "Overall", "sign")]
+		}
+	}
+	if (type=="coef") estimate <- "mean"
+	attr(out, "estimate") <- estimate
+	class(out) <- c("varimp", class(out)) 
+	return(out)
+}

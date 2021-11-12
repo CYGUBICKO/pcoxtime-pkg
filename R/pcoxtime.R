@@ -94,7 +94,7 @@
 #'
 #' @export
 #' @import Rcpp
-#' @importFrom stats .getXlevels aggregate approx as.formula coef coefficients delete.response model.extract model.frame model.matrix na.omit na.pass predict setNames terms weighted.mean
+#' @importFrom stats .getXlevels aggregate approx as.formula coef coefficients delete.response model.extract model.frame model.matrix na.omit na.pass predict setNames terms weighted.mean quantile formula reorder
 #' @importFrom grDevices rainbow
 #'
 #' @examples
