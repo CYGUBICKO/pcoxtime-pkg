@@ -1,7 +1,7 @@
 Package: pcoxtime
 Type: Package
 Title: Penalized Cox Proportional Hazard Model for Time-Dependent Covariates
-Version: 1.0.2
+Version: 1.0.3
 Authors@R: 
 	c(person("Bicko","Cygu", 
 		role=c("aut","cre"),

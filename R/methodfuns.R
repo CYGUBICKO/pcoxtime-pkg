@@ -180,5 +180,5 @@ extractoptimal <- function(object, what=c("optimal", "cvm", "coefs"), ...) UseMe
 varimp <- function(object, newdata, type=c("coef", "perm", "model")
 	, relative=TRUE, nrep=50, parallelize=FALSE, nclusters=1
 	, estimate=c("mean", "quantile"), probs=c(0.025, 0.5, 0.975)
-	, ...) UseMethod("varimp")
+	, seed=NULL, ...) UseMethod("varimp")
 

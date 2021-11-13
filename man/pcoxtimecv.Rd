@@ -136,7 +136,7 @@ print(fit2)
 \references{
 Dai, B., and Breheny, P. (2019). \emph{Cross validation approaches for penalized Cox regression}. \emph{arXiv preprint arXiv:1905.10432}.
 
-Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2011) \emph{Regularization Paths for Cox's Proportional Hazards Model via Coordinate Descent, Journal of Statistical Software, Vol. 39(5) 1-13} \url{https://www.jstatsoft.org/v39/i05/}
+Simon, N., Friedman, J., Hastie, T., Tibshirani, R. (2011) \emph{Regularization Paths for Cox's Proportional Hazards Model via Coordinate Descent, Journal of Statistical Software, Vol. 39(5) 1-13} \doi{https://doi.org/10.18637/jss.v039.i05}.
 }
 \seealso{
 \code{\link[pcoxtime]{plot.pcoxtimecv}}, \code{\link[pcoxtime]{pcoxtime}}

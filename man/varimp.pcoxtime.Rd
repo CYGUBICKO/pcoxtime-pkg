@@ -15,6 +15,7 @@
   nclusters = 1,
   estimate = c("mean", "quantile"),
   probs = c(0.025, 0.5, 0.975),
+  seed = NULL,
   ...
 )
 }
@@ -36,6 +37,8 @@
 \item{estimate}{character string specify which summary statistic to use for the estimates. Default is \code{"mean"}.}
 
 \item{probs}{numeric vector of probabilities with values in \code{[0,1]}.}
+
+\item{seed}{a single value for for random number generation.}
 
 \item{...}{for future implementation.}
 }

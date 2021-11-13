@@ -521,6 +521,7 @@ extractoptimal.pcoxtimecv <- function(object, what=c("optimal", "cvm", "coefs"),
 #' @param nclusters number of cores to use if \code{parallelize = TRUE}.
 #' @param estimate character string specify which summary statistic to use for the estimates. Default is \code{"mean"}.
 #' @param probs numeric vector of probabilities with values in \code{[0,1]}.
+#' @param seed a single value for for random number generation.
 #' @param ... for future implementation.
 #'
 #' @return a named vector of variable scores (\code{estimate = "mean"}) or a data frame (\code{estimate = "quantile"}).
@@ -529,7 +530,12 @@ extractoptimal.pcoxtimecv <- function(object, what=c("optimal", "cvm", "coefs"),
 
 pvimp.pcoxtime <- function(object, newdata, nrep=50
 	, parallelize=FALSE, nclusters=1, estimate=c("mean", "quantile")
-	, probs=c(0.025, 0.5, 0.975), ...) {
+	, probs=c(0.025, 0.5, 0.975), seed=NULL, ...) {
+	if (is.null(seed) || !is.numeric(seed)) {
+		seed <- 911
+		set.seed(seed)
+	}
+
 	estimate <- match.arg(estimate)
 	# Overall score
 	overall_c <- concordScore.pcoxtime(object, newdata=newdata, stats=FALSE, reverse=TRUE, ...)
@@ -546,8 +552,8 @@ pvimp.pcoxtime <- function(object, newdata, nrep=50
 			on.exit(parallel::stopCluster(cl))
 		}
 		x <- NULL
-		permute_df <- newdata[rep(seq(N), nrep), ]
 		vi <- foreach(x = xvars, .export="concordScore.pcoxtime") %dopar% {
+			permute_df <- newdata[rep(seq(N), nrep), ]
 			if (is.factor(permute_df[,x])) {
 				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
 				permute_var <- factor(permute_var, levels = levels(permute_df[,x]))
@@ -575,8 +581,8 @@ pvimp.pcoxtime <- function(object, newdata, nrep=50
 			out
 		}
 	} else {
-		permute_df <- newdata[rep(seq(N), nrep), ]
 		vi <- sapply(xvars, function(x){
+			permute_df <- newdata[rep(seq(N), nrep), ]
 			if (is.factor(permute_df[,x])) {
 				permute_var <- as.vector(replicate(nrep, sample(newdata[,x], N, replace = FALSE)))
 				permute_var <- factor(permute_var, levels = levels(permute_df[,x]))
@@ -660,6 +666,7 @@ coefvimp.pcoxtime <- function(object, relative=TRUE, ...) {
 #' @param nclusters number of cores to use if \code{parallelize = TRUE}.
 #' @param estimate character string specify which summary statistic to use for the estimates. Default is \code{"mean"}.
 #' @param probs numeric vector of probabilities with values in \code{[0,1]}.
+#' @param seed a single value for for random number generation.
 #' @param ... for future implementation.
 #'
 #' @return a named vector of variable scores (\code{estimate = "mean"}) or a data frame (\code{estimate = "quantile"}).
@@ -685,7 +692,7 @@ coefvimp.pcoxtime <- function(object, relative=TRUE, ...) {
 
 varimp.pcoxtime <- function(object, newdata, type=c("coef", "perm", "model")
 	, relative=TRUE, nrep=50, parallelize=FALSE, nclusters=1
-	, estimate=c("mean", "quantile"), probs=c(0.025, 0.5, 0.975), ...) {
+	, estimate=c("mean", "quantile"), probs=c(0.025, 0.5, 0.975), seed=NULL, ...) {
 	type <- match.arg(type)
 	estimate <- match.arg(estimate)
 	if (type=="model") {
