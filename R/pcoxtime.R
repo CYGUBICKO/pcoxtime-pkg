@@ -233,9 +233,17 @@ pcoxtime <- function(formula, data, alpha = 1, lambda = 1
 	n.risk <- sort(unique(drop(model_est[["n.risk"]])), decreasing = TRUE)
 	temp_df <- data.frame(temp_df[order(temp_df[, timevarlabel]), ])
 	temp_df$censorvar <- 1 - temp_df[, eventvarlabel]
-	n.event <- as.vector(t(aggregate(as.formula(paste0(eventvarlabel, "~", timevarlabel)), temp_df, FUN = sum)[2]))
-	n.censor <- as.vector(t(aggregate(as.formula(paste0("censorvar", "~", timevarlabel)), temp_df, FUN = sum)[2]))
-	time <- unique(temp_df[, timevarlabel])
+	
+	## 2022 Jan 01 (Sat): breaks for y~x
+#	n.event <- as.vector(t(aggregate(as.formula(paste0(eventvarlabel, "~", timevarlabel)), temp_df, FUN = sum)[2]))
+#	n.censor <- as.vector(t(aggregate(as.formula(paste0("censorvar", "~", timevarlabel)), temp_df, FUN = sum)[2]))
+#	time <- unique(temp_df[, timevarlabel])
+	
+	## 2022 Jan 01 (Sat): FIX for breaks for y~x
+	n.event <- as.vector(t(aggregate(temp_df[,2]~temp_df[,1], FUN = sum)[2]))
+	n.censor <- as.vector(t(aggregate(temp_df[,3]~temp_df[,1], FUN = sum)[2]))
+	time <- unique(temp_df[, 1])
+
 	n <- length(times)
 	
 	result <- list(coef = beta_hat
