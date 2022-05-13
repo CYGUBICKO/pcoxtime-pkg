@@ -87,7 +87,7 @@
 #' \item{lambda, alpha}{lambda and alpha used, respectively.}
 #' \item{formula}{model formula used in the fit.}
 #' \item{means}{vector of column means of the X matrix. Subsequent survival curves are adjusted to this value.}
-#' \item{}{See \code{\link[stats]{model.frame}} for \code{assign}, \code{xlevels}, \code{contrasts} and \code{terms}.}
+#' \item{assign, xlevels, terms}{See \code{\link[stats]{model.frame}} for \code{assign}, \code{xlevels}, \code{contrasts} and \code{terms}.}
 #'
 #' @seealso
 #' \code{\link[survival]{coxph}}, \code{\link[pcoxtime]{pcoxtimecv}}
