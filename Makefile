@@ -30,9 +30,6 @@ update-doc:
 install:
 	make update-export && make update-doc && make check-package && make build-package && make install-package
 
-update-oldrepo:
-	cp -r DESCRIPTION man NAMESPACE R src tests ../../promote_science/learning_codes/pcoxtime/pcoxtime/
-
 ######################################################################
 clean: 
 	find . \( -name "\.#*" -o -name "*~" -o -name ".Rhistory" \) -exec rm {} \;
