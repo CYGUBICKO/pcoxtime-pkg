@@ -18,7 +18,7 @@ License: GPL (>= 2)
 Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 1.0.5), survival, doParallel, parallel, foreach, ggplot2, prodlim, riskRegression, PermAlgo, pec
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 Suggests: 
     testthat (>= 3.0.0)

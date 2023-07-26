@@ -31,8 +31,10 @@ install:
 	make update-export && make update-doc && make check-package && make build-package && make install-package
 
 ######################################################################
+
 clean: 
 	find . \( -name "\.#*" -o -name "*~" -o -name ".Rhistory" \) -exec rm {} \;
 
 ######################################################################
 
+-include ~/personal.mk
