@@ -14,6 +14,7 @@ Current implementation uses proximal gradient descent which inferior compared to
 
 Reading https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4824408/ (a key glmnet paper)
 * Need to agree on what is meant by “warm start”
+  Once the solution path is chosen, i.e., $\lambda$ values, the $\beta$ value corresponding to the particular $\lambda$ is used as the starting value when using the next immediate $\lambda$. This is currently implemented in `pcoxtime`.
 * What are their “risk-set update” tricks?
 * How well do we understand the duality between penalties and constraints?
 	* The set of penalized and constrained solutions is probably the same set
